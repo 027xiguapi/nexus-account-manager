@@ -68,19 +68,24 @@ export function AddAccountDialog({ defaultPlatform }: AddAccountDialogProps) {
                         key={method.id}
                         onClick={() => setSelectedMethod(method.id)}
                         className={cn(
-                            "p-3 rounded-lg border transition-all text-left",
+                            "p-4 rounded-xl border transition-all text-left relative overflow-hidden group",
                             isActive
-                                ? "border-primary bg-primary/10"
-                                : "border-muted hover:border-muted-foreground/30"
+                                ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary"
+                                : "border-border/60 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 bg-card"
                         )}
                     >
-                        <div className="flex items-center gap-2 mb-0.5">
-                            <Icon className={cn("h-4 w-4", isActive && "text-primary")} />
-                            <span className={cn("text-sm font-medium", isActive && "text-primary")}>
+                        <div className="flex items-center gap-3 mb-1.5">
+                            <div className={cn(
+                                "p-2 rounded-lg transition-colors",
+                                isActive ? "bg-primary text-primary-foreground" : "bg-muted group-hover:bg-primary/10 group-hover:text-primary"
+                            )}>
+                                <Icon className="h-5 w-5" />
+                            </div>
+                            <span className={cn("text-sm font-semibold", isActive ? "text-primary" : "text-foreground")}>
                                 {method.name}
                             </span>
                         </div>
-                        <p className="text-[10px] text-muted-foreground line-clamp-1">
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                             {method.description}
                         </p>
                     </button>

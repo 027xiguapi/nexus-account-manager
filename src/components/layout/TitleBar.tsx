@@ -4,51 +4,37 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 export function TitleBar() {
   const appWindow = getCurrentWindow()
 
-  const handleMinimize = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    appWindow.minimize()
-  }
-
-  const handleMaximize = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    appWindow.toggleMaximize()
-  }
-
-  const handleClose = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    appWindow.close()
-  }
+  const handleMinimize = () => appWindow.minimize()
+  const handleMaximize = () => appWindow.toggleMaximize()
+  const handleClose = () => appWindow.close()
 
   return (
     <div
-      className="h-9 bg-background flex items-center justify-between px-4 select-none border-b border-white/5"
+      className="h-8 bg-background flex items-center justify-end px-3 select-none border-b border-border/50"
       data-tauri-drag-region
     >
-      <div className="text-xs font-medium text-muted-foreground flex-1" data-tauri-drag-region>
-        Nexus Account Manager
-      </div>
-
-      <div className="flex items-center gap-1">
+      {/* Window Controls (Windows Style but minimal) */}
+      <div className="flex items-center gap-2">
         <button
           onClick={handleMinimize}
-          className="w-8 h-8 flex items-center justify-center hover:bg-secondary rounded transition-colors text-muted-foreground hover:text-foreground"
+          className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
           type="button"
         >
-          <Minus className="w-4 h-4" />
+          <Minus className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={handleMaximize}
-          className="w-8 h-8 flex items-center justify-center hover:bg-secondary rounded transition-colors text-muted-foreground hover:text-foreground"
+          className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
           type="button"
         >
-          <Square className="w-3 h-3" />
+          <Square className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={handleClose}
-          className="w-8 h-8 flex items-center justify-center hover:bg-red-500 hover:text-white rounded transition-colors"
+          className="p-1.5 hover:bg-destructive hover:text-destructive-foreground rounded-md transition-colors text-muted-foreground"
           type="button"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

@@ -112,11 +112,11 @@ export const AccountCard = memo(function AccountCard({
         <>
             <Card
                 className={cn(
-                    'relative transition-all duration-300 cursor-pointer overflow-hidden group border-white/5',
-                    'bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm',
-                    'hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1',
+                    'relative transition-all duration-300 cursor-pointer overflow-hidden group border-border/60',
+                    'bg-card shadow-sm',
+                    'hover:shadow-lg hover:-translate-y-1 hover:border-primary/20',
                     // Active style
-                    account.isActive && 'ring-1 ring-primary/50 shadow-lg shadow-primary/10 bg-primary/5',
+                    account.isActive && 'ring-2 ring-primary shadow-lg shadow-primary/10 bg-primary/5',
                     // Banned style
                     isForbidden && 'border-destructive/30 bg-destructive/5'
                 )}
@@ -171,7 +171,7 @@ export const AccountCard = memo(function AccountCard({
                         </Badge>
 
                         {/* Platform Badge */}
-                        <Badge variant="outline" className="text-[10px] h-5 px-2 text-muted-foreground border-white/10 bg-white/5">
+                        <Badge variant="outline" className="text-[10px] h-5 px-2 text-muted-foreground border-border bg-muted/30">
                             {isAntigravity ? 'Antigravity' : (kiro?.idp || 'Kiro')}
                         </Badge>
                     </div>

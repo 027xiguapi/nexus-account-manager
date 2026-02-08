@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AntigravityAccount } from '@/types/account'
 import { Progress } from '@/components/ui/progress'
 import { useTranslation } from 'react-i18next'
@@ -20,34 +20,29 @@ export function QuotaCard({ accounts, className }: QuotaCardProps) {
     const avgQuota = accounts.length > 0 ? Math.round(totalQuota / accounts.length) : 0
 
     return (
-        <Card className={cn(
-            "bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border-white/5",
-            "hover:shadow-lg hover:shadow-primary/5 transition-all duration-300",
-            className
-        )}>
-            <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground/80">
-                    {t('dashboard.averageQuota')}
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="flex items-end gap-2 mb-2">
-                    <span className="text-3xl font-bold tracking-tight">{avgQuota}%</span>
-                </div>
+        <div className={cn("space-y-4", className)}>
+            <div className="flex items-end gap-2 mb-2">
+                <span className="text-4xl font-bold tracking-tight text-foreground">{avgQuota}%</span>
+                <span className="text-sm text-muted-foreground mb-1 font-medium">{t('dashboard.averageQuota')}</span>
+            </div>
+            <div className="space-y-2">
                 <Progress
                     value={avgQuota}
-                    className="h-2 bg-secondary/50"
+                    className="h-3 bg-secondary"
                     indicatorClassName={cn(
-                        "transition-all duration-500",
-                        avgQuota > 90 ? "bg-red-500" :
-                            avgQuota > 70 ? "bg-yellow-500" : "bg-primary"
+                        "transition-all duration-500 bg-gradient-to-r",
+                        avgQuota > 90 ? "from-red-500 to-red-600" :
+                            avgQuota > 70 ? "from-yellow-500 to-orange-500" : "from-blue-500 to-cyan-500"
                     )}
                 />
-                <p className="text-xs text-muted-foreground mt-3 flex items-center gap-2">
-                    <span className="inline-block w-2 h-2 rounded-full bg-primary/50 animate-pulse" />
-                    {t('dashboard.acrossAntigravity', { count: accounts.length })}
+                <p className="text-xs text-muted-foreground flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                        <span className="inline-block w-2 h-2 rounded-full bg-primary/50 animate-pulse" />
+                        {t('dashboard.acrossAntigravity', { count: accounts.length })}
+                    </span>
+                    <span>{avgQuota}% Used</span>
                 </p>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     )
 }
