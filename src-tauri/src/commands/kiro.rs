@@ -1,181 +1,240 @@
-//! Kiro 平台命令
-//! 
-//! 处理 AWS Builder ID、社交登录、SSO Token 等
+use crate::core::kiro as core_kiro;
+use tauri::{command, AppHandle, Manager};
+use serde::Serialize;
+use uuid::Uuid;
+use tauri_plugin_opener::OpenerExt;
 
-use serde::{Deserialize, Serialize};
-use tauri::command;
-use std::sync::Mutex;
-use once_cell::sync::Lazy;
-
-/// Device Code Flow 状态
-#[derive(Serialize, Clone)]
-pub struct DeviceCodeData {
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeviceAuthResult {
+    pub device_code: String,
     pub user_code: String,
     pub verification_uri: String,
-    pub expires_in: u32,
-    pub interval: u32,
+    pub expires_in: i64,
+    pub interval: i64,
+    pub client_id: String,
+    pub client_secret: String,
 }
 
-/// 轮询结果
 #[derive(Serialize)]
-pub struct PollResult {
+#[serde(rename_all = "camelCase")]
+pub struct KiroAccountData {
     pub completed: bool,
-    pub account: Option<KiroAccountData>,
+    pub account: Option<KiroAccount>,
     pub error: Option<String>,
 }
 
-/// Kiro 账号数据
-#[derive(Serialize, Clone)]
-pub struct KiroAccountData {
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct KiroAccount {
     pub id: String,
     pub email: String,
     pub name: Option<String>,
-    pub idp: String,
-    pub user_id: Option<String>,
+    pub access_token: String,
+    pub refresh_token: Option<String>,
+    pub client_id: Option<String>,
+    pub client_secret: Option<String>,
+    pub expires_in: i64,
+    pub quota: core_kiro::KiroQuotaData,
 }
 
-/// 全局 Device Code 状态
-static DEVICE_CODE_STATE: Lazy<Mutex<Option<DeviceCodeData>>> = Lazy::new(|| Mutex::new(None));
-
-/// 开始 Builder ID 登录
+/// 启动设备授权流程
 #[command]
-pub fn kiro_start_builderid_login() -> Result<DeviceCodeData, String> {
-    // TODO: 调用 AWS Builder ID API 获取 device code
-    // https://docs.aws.amazon.com/singlesignon/latest/OIDCAPIReference/API_StartDeviceAuthorization.html
+pub async fn kiro_start_device_auth() -> Result<DeviceAuthResult, String> {
+    // 1. 注册客户端
+    let (client_id, client_secret) = core_kiro::register_client().await?;
     
-    let data = DeviceCodeData {
-        user_code: generate_user_code(),
-        verification_uri: "https://device.sso.us-east-1.amazonaws.com/".to_string(),
-        expires_in: 600,
-        interval: 5,
-    };
+    // 2. 启动设备授权
+    let auth_res = core_kiro::start_device_authorization(&client_id, &client_secret).await?;
     
-    // 保存状态
-    *DEVICE_CODE_STATE.lock().unwrap() = Some(data.clone());
-    
-    Ok(data)
-}
-
-/// 轮询 Builder ID 授权状态
-#[command]
-pub fn kiro_poll_builderid_auth() -> Result<PollResult, String> {
-    // TODO: 调用 AWS Builder ID API 检查授权状态
-    // 这里是模拟实现
-    
-    let state = DEVICE_CODE_STATE.lock().unwrap();
-    if state.is_none() {
-        return Err("No active login session".to_string());
-    }
-    
-    // 模拟：每次调用有 20% 概率完成
-    if rand::random::<f32>() < 0.2 {
-        Ok(PollResult {
-            completed: true,
-            account: Some(KiroAccountData {
-                id: uuid::Uuid::new_v4().to_string(),
-                email: "builder@aws.dev".to_string(),
-                name: Some("AWS Builder".to_string()),
-                idp: "BuilderId".to_string(),
-                user_id: Some(uuid::Uuid::new_v4().to_string()),
-            }),
-            error: None,
-        })
-    } else {
-        Ok(PollResult {
-            completed: false,
-            account: None,
-            error: None,
-        })
-    }
-}
-
-/// 取消 Builder ID 登录
-#[command]
-pub fn kiro_cancel_builderid_login() -> Result<(), String> {
-    *DEVICE_CODE_STATE.lock().unwrap() = None;
-    Ok(())
-}
-
-/// 社交登录 (Google/GitHub)
-#[command]
-pub fn kiro_social_login(provider: String) -> Result<KiroAccountData, String> {
-    // TODO: 实现真实的社交登录流程
-    // 需要打开浏览器进行 OAuth，然后回调处理
-    
-    let idp = match provider.to_lowercase().as_str() {
-        "google" => "Google",
-        "github" => "Github",
-        _ => return Err(format!("Unknown provider: {}", provider)),
-    };
-    
-    // 模拟返回
-    Ok(KiroAccountData {
-        id: uuid::Uuid::new_v4().to_string(),
-        email: format!("user@{}.com", provider.to_lowercase()),
-        name: Some(format!("{} User", provider)),
-        idp: idp.to_string(),
-        user_id: Some(uuid::Uuid::new_v4().to_string()),
+    Ok(DeviceAuthResult {
+        device_code: auth_res.deviceCode,
+        user_code: auth_res.userCode,
+        verification_uri: auth_res.verificationUri,
+        expires_in: auth_res.expiresIn,
+        interval: auth_res.interval,
+        client_id,
+        client_secret,
     })
+}
+
+/// 轮询 Token 并获取完整账号信息
+#[command]
+pub async fn kiro_poll_token(
+    device_code: String, 
+    client_id: String, 
+    client_secret: String
+) -> Result<KiroAccountData, String> {
+    // 进行一次检查
+    // Poll Token
+    let token_res = match core_kiro::poll_token(&client_id, &client_secret, &device_code, 5).await {
+        Ok(t) => t,
+        Err(e) => {
+            if e == "pending" || e == "slow_down" {
+                return Ok(KiroAccountData {
+                    completed: false,
+                    account: None,
+                    error: None
+                });
+            }
+            return Ok(KiroAccountData {
+                completed: false,
+                account: None,
+                error: Some(e)
+            });
+        }
+    };
+
+    // 获取配额和用户信息
+    let quota_res = core_kiro::get_usage_limits(&token_res.access_token).await
+        .map_err(|e| format!("Failed to fetch user info: {}", e))?;
+
+    let email = quota_res.email.clone().unwrap_or("unknown@example.com".to_string());
+    let name = email.split('@').next().map(|s| s.to_string());
+
+    Ok(KiroAccountData {
+        completed: true,
+        account: Some(KiroAccount {
+            id: Uuid::new_v4().to_string(),
+            email,
+            name,
+            access_token: token_res.access_token,
+            refresh_token: token_res.refresh_token,
+            client_id: token_res.client_id,
+            client_secret: token_res.client_secret,
+            expires_in: token_res.expires_in,
+            quota: quota_res,
+        }),
+        error: None,
+    })
+}
+
+/// 检查配额
+#[command]
+pub async fn kiro_check_quota(access_token: String) -> Result<core_kiro::KiroQuotaData, String> {
+    core_kiro::get_usage_limits(&access_token).await
+}
+
+/// 刷新 Token
+#[command]
+pub async fn kiro_refresh_token(
+    refresh_token: String, 
+    client_id: String, 
+    client_secret: String
+) -> Result<core_kiro::KiroTokenData, String> {
+    core_kiro::refresh_token(&refresh_token, &client_id, &client_secret).await
+}
+
+// 模拟取消 (实际逻辑由前端停止轮询)
+#[command]
+pub fn kiro_cancel_auth() -> Result<(), String> {
+    Ok(())
 }
 
 /// 导入 SSO Token
 #[command]
-pub fn kiro_import_sso_token(token: String) -> Result<KiroAccountData, String> {
-    // 验证 token 格式 (JWT)
-    if !token.starts_with("ey") {
-        return Err("Invalid SSO token format".to_string());
-    }
-    
-    // TODO: 解析 JWT 获取用户信息
-    // 实际实现中需要验证 token 并提取 claims
-    
-    Ok(KiroAccountData {
-        id: uuid::Uuid::new_v4().to_string(),
-        email: "sso_imported@kiro.dev".to_string(),
-        name: Some("SSO User".to_string()),
-        idp: "Enterprise".to_string(),
-        user_id: None,
+pub async fn kiro_import_sso_token(token: String) -> Result<KiroAccount, String> {
+    // 验证 Token (通过获取配额)
+    let quota_res = core_kiro::get_usage_limits(&token).await
+        .map_err(|e| format!("Invalid SSO Token: {}", e))?;
+
+    let email = quota_res.email.clone().unwrap_or("imported@example.com".to_string());
+    let name = email.split('@').next().map(|s| s.to_string());
+
+    Ok(KiroAccount {
+        id: Uuid::new_v4().to_string(),
+        email,
+        name,
+        access_token: token,
+        refresh_token: None, // SSO Token 通常没有 Refresh Token 或者是在外部管理
+        client_id: None,
+        client_secret: None,
+        expires_in: 0, // 未知过期时间
+        quota: quota_res,
     })
 }
 
-/// OIDC 凭证
-#[derive(Deserialize)]
-pub struct OidcCredentials {
-    pub refresh_token: String,
-    pub client_id: Option<String>,
-    pub client_secret: Option<String>,
-}
-
-/// 验证 OIDC 凭证
+/// 验证 OIDC 凭证并导入
 #[command]
-pub fn kiro_verify_credentials(credentials: OidcCredentials) -> Result<KiroAccountData, String> {
-    // TODO: 使用凭证调用 token endpoint 验证
-    
-    if credentials.refresh_token.is_empty() {
-        return Err("Refresh token is required".to_string());
-    }
-    
-    Ok(KiroAccountData {
-        id: uuid::Uuid::new_v4().to_string(),
-        email: "oidc_user@enterprise.com".to_string(),
-        name: Some("OIDC User".to_string()),
-        idp: "Enterprise".to_string(),
-        user_id: None,
+pub async fn kiro_verify_credentials(credentials: serde_json::Value) -> Result<KiroAccount, String> {
+    let client_id = credentials.get("clientId").and_then(|v| v.as_str()).ok_or("Missing clientId")?;
+    let client_secret = credentials.get("clientSecret").and_then(|v| v.as_str()).ok_or("Missing clientSecret")?;
+    let refresh_token = credentials.get("refreshToken").and_then(|v| v.as_str()).ok_or("Missing refreshToken")?;
+
+    // 尝试刷新以获取 Access Token
+    let token_res = core_kiro::refresh_token(refresh_token, client_id, client_secret).await
+        .map_err(|e| format!("Invalid Credentials: {}", e))?;
+
+    // 获取配额和用户信息
+    let quota_res = core_kiro::get_usage_limits(&token_res.access_token).await
+        .map_err(|e| format!("Failed to fetch info: {}", e))?;
+
+    let email = quota_res.email.clone().unwrap_or("unknown@example.com".to_string());
+    let name = email.split('@').next().map(|s| s.to_string());
+
+    Ok(KiroAccount {
+        id: Uuid::new_v4().to_string(),
+        email,
+        name,
+        access_token: token_res.access_token,
+        refresh_token: Some(token_res.refresh_token.unwrap_or(refresh_token.to_string())),
+        client_id: Some(client_id.to_string()),
+        client_secret: Some(client_secret.to_string()),
+        expires_in: token_res.expires_in,
+        quota: quota_res,
     })
 }
 
-/// 生成随机 user code
-fn generate_user_code() -> String {
-    use rand::Rng;
-    let mut rng = rand::thread_rng();
-    let chars: Vec<char> = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".chars().collect();
+/// 社交登录
+#[command]
+pub async fn kiro_social_login(app: AppHandle, provider: String) -> Result<KiroAccount, String> {
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<String>(1);
     
-    let code: String = (0..4)
-        .map(|_| chars[rng.gen_range(0..chars.len())])
-        .collect();
-    let code2: String = (0..4)
-        .map(|_| chars[rng.gen_range(0..chars.len())])
-        .collect();
-    
-    format!("{}-{}", code, code2)
+    // 注册 Sender
+    if let Some(state) = app.try_state::<core_kiro::DeepLinkState>() {
+        // Explicitly annotate closure argument type to satisfy E0282
+        let mut sender_guard = state.sender.lock().map_err(|e: std::sync::PoisonError<_>| e.to_string())?;
+        *sender_guard = Some(tx);
+    } else {
+        return Err("DeepLinkState not initialized".to_string());
+    }
+
+    // 构建 URL
+    // 注意：Callback URL 必须是 kiro://oauth/callback
+    let callback_url = "kiro://oauth/callback";
+    let url = format!(
+        "https://app.kiro.dev/login?provider={}&callback={}&source=desktop",
+        provider.to_lowercase(),
+        urlencoding::encode(callback_url)
+    );
+
+    // 打开浏览器
+    app.opener().open_url(&url, None::<&str>)
+        .map_err(|e| format!("Failed to open browser: {}", e))?;
+
+    // 等待回调
+    // 设置超时 5 分钟
+    let url = tokio::time::timeout(std::time::Duration::from_secs(300), rx.recv())
+        .await
+        .map_err(|_| "Login timed out".to_string())?
+        .ok_or("Channel closed".to_string())?;
+
+    // 解析 URL
+    // kiro://oauth/callback?token=...
+    let url_parsed = url::Url::parse(&url).map_err(|e| format!("Invalid callback URL: {}", e))?;
+    let pairs = url_parsed.query_pairs();
+    let token = pairs.into_iter().find(|(k, _)| k == "token")
+        .map(|(_, v)| v.to_string())
+        .ok_or("No token in callback")?;
+
+    // 导入 Token
+    kiro_import_sso_token(token).await
+}
+
+/// 切换 Kiro 账号 (存根)
+#[command]
+pub async fn switch_kiro_account(account_id: String, session_token: Option<String>, machine_id: Option<String>) -> Result<(), String> {
+    println!("Switching Kiro account to {}, machine: {:?}", account_id, machine_id);
+    // TODO: Implement actual IDE config switching
+    Ok(())
 }

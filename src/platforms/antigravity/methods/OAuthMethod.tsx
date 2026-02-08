@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ExternalLink, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+// @ts-ignore
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { invoke } from '@tauri-apps/api/core'
 import type { AddMethodProps } from '@/types/platform'
 import type { AntigravityAccount } from '@/types/account'
@@ -36,7 +38,13 @@ export function OAuthMethod({ onSuccess, onError, onClose }: AddMethodProps) {
             const url = await invoke<string>('antigravity_prepare_oauth_url')
 
             // 打开浏览器
-            window.open(url, '_blank')
+            try {
+                // @ts-ignore
+                await openUrl(url)
+            } catch (e) {
+                console.error("Failed to open URL via plugin, falling back to window.open", e);
+                window.open(url, '_blank')
+            }
 
             setMessage(isEn
                 ? 'Please complete authorization in browser, then paste the code below'

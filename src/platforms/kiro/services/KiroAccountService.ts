@@ -38,29 +38,37 @@ export class KiroAccountService extends BaseAccountService {
     console.log(`[Kiro] Refreshing token for ${account.name}`)
 
     const legacyAccount = account as any
-    const sessionToken = legacyAccount.platformData.sessionToken as string
-    if (!sessionToken) {
-      throw new Error('No session token available')
+    const platformData = legacyAccount.platformData || {}
+    const { refreshToken, clientId, clientSecret } = platformData
+
+    if (!refreshToken) {
+      throw new Error('No refresh token available')
     }
 
-    // TODO: 调用 Kiro API 刷新 session
-    // const response = await fetch('https://api.kiro.dev/refresh', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ session_token: sessionToken }),
-    // })
+    const { invoke } = await import('@tauri-apps/api/core')
 
-    // 模拟刷新
+    // 调用后端刷新
+    // Result<KiroTokenData, String>
+    const tokenData = await invoke<any>('kiro_refresh_token', {
+      refreshToken,
+      clientId: clientId || '',
+      clientSecret: clientSecret || ''
+    })
+
     return {
       ...account,
       // @ts-ignore
       platformData: {
-        ...legacyAccount.platformData,
-        sessionToken: 'new_session_token',
-        tokenExpiry: new Date(Date.now() + 7200000).toISOString(),
+        ...platformData,
+        accessToken: tokenData.accessToken,
+        // 如果后端返还新的 refresh token 则更新，否则保持旧的
+        refreshToken: tokenData.refreshToken || refreshToken,
+        expiresIn: tokenData.expiresIn,
+        tokenExpiry: new Date(Date.now() + (tokenData.expiresIn * 1000)).toISOString(),
       },
       // @ts-ignore
       updatedAt: new Date().toISOString(),
-    } as unknown as BaseAccount // Force cast to match return type
+    } as unknown as BaseAccount
   }
 
   /**
@@ -70,15 +78,22 @@ export class KiroAccountService extends BaseAccountService {
   async getQuota(account: BaseAccount): Promise<{ used: number; total: number }> {
     console.log(`[Kiro] Getting quota for ${account.name}`)
 
-    // TODO: 调用 Kiro API 获取用量
-    // const response = await fetch('https://api.kiro.dev/usage', {
-    //   headers: { 'X-Session-Token': account.platformData.sessionToken },
-    // })
+    const legacyAccount = account as any
+    const accessToken = legacyAccount.platformData?.accessToken || legacyAccount.platformData?.sessionToken
 
-    // 模拟配额数据
+    if (!accessToken) {
+      console.warn('[Kiro] No access token for quota check')
+      return { used: 0, total: 0 }
+    }
+
+    const { invoke } = await import('@tauri-apps/api/core')
+    // Result<KiroQuotaData, String>
+    // KiroQuotaData { total_limit, current_usage ... } camelCase -> totalLimit, currentUsage
+    const quota = await invoke<any>('kiro_check_quota', { accessToken })
+
     return {
-      used: Math.floor(Math.random() * 1000),
-      total: 1000,
+      used: quota.currentUsage || 0,
+      total: quota.totalLimit || 0,
     }
   }
 

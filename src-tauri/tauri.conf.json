@@ -29,7 +29,9 @@
       "capabilities": [
         {
           "identifier": "main-capability",
-          "windows": ["main"],
+          "windows": [
+            "main"
+          ],
           "permissions": [
             "core:window:allow-close",
             "core:window:allow-minimize",
@@ -38,7 +40,9 @@
             "core:window:allow-start-dragging",
             "core:window:allow-set-background-color",
             "core:window:allow-show",
-            "core:window:default"
+            "core:window:default",
+            "opener:default",
+            "dialog:default"
           ]
         }
       ]

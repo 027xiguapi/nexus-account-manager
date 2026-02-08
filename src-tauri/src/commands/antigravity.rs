@@ -9,6 +9,7 @@ use rusqlite::Connection;
 
 /// OAuth URL 响应
 #[derive(Serialize)]
+#[allow(dead_code)]
 pub struct OAuthUrlResponse {
     pub url: String,
     pub state: String,
@@ -30,55 +31,70 @@ pub struct FoundToken {
     pub token: String,
 }
 
+use crate::core::oauth;
+use crate::core::oauth_server;
+use crate::core::quota;
+use tauri::AppHandle; 
+
+// ... keep existing structs ...
+
 /// 准备 OAuth URL
 #[command]
-pub fn antigravity_prepare_oauth_url() -> Result<String, String> {
-    // Google OAuth 配置
-    let client_id = "YOUR_GOOGLE_CLIENT_ID"; // TODO: 从配置读取
-    let redirect_uri = "urn:ietf:wg:oauth:2.0:oob";
-    let scope = "email profile openid";
-    
-    let url = format!(
-        "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&redirect_uri={}&response_type=code&scope={}&access_type=offline&prompt=consent",
-        client_id, redirect_uri, scope
-    );
-    
-    Ok(url)
+pub async fn antigravity_prepare_oauth_url(app: AppHandle) -> Result<String, String> {
+    // 使用自动服务器，启动本地监听并在 localhost 接收回调
+    oauth_server::ensure_oauth_flow_prepared(Some(app)).await
 }
 
 /// 完成 OAuth 登录
 #[command]
-pub fn antigravity_complete_oauth(code: String) -> Result<AntigravityAccountData, String> {
-    // TODO: 实现真实的 OAuth token 交换
-    // 这里需要调用 Google OAuth API 交换 code 获取 access_token 和 refresh_token
+pub async fn antigravity_complete_oauth(code: String) -> Result<AntigravityAccountData, String> {
+    // 提交验证码到本地服务器
+    oauth_server::submit_oauth_code(code).await?;
     
-    // 模拟返回
+    // 完成 Token 交换
+    let token_res = oauth_server::complete_oauth_flow(None).await?;
+    
+    // Get User Info
+    let user_info = oauth::get_user_info(&token_res.access_token).await?;
+    
+    // Create Account Data
     Ok(AntigravityAccountData {
-        id: uuid::Uuid::new_v4().to_string(),
-        email: format!("oauth_{}@gmail.com", &code[..6.min(code.len())]),
-        name: Some("OAuth User".to_string()),
-        refresh_token: format!("1//oauth_{}", code),
+        id: uuid::Uuid::new_v4().to_string(), // In real app, maybe hash of email
+        email: user_info.email.clone(),
+        name: user_info.get_display_name(),
+        refresh_token: token_res.refresh_token.unwrap_or_default(), // Handle missing refresh token
     })
 }
 
 /// 通过 Refresh Token 添加账号
 #[command]
-pub fn antigravity_add_by_token(refresh_token: String) -> Result<AntigravityAccountData, String> {
-    // 验证 token 格式
-    if !refresh_token.starts_with("1//") {
-        return Err("Invalid token format".to_string());
+pub async fn antigravity_add_by_token(refresh_token: String) -> Result<AntigravityAccountData, String> {
+    // 简单验证格式
+    if !refresh_token.starts_with("1//") && !refresh_token.contains(".") {
+         // rough check
     }
+
+    // 尝试刷新 Token 以验证有效性
+    let token_res = oauth::refresh_access_token(&refresh_token).await?;
     
-    // TODO: 实际实现中应该调用 Google API 验证 token 并获取用户信息
+    // 获取用户信息
+    let user_info = oauth::get_user_info(&token_res.access_token).await?;
+    let name = user_info.get_display_name();
     
     Ok(AntigravityAccountData {
         id: uuid::Uuid::new_v4().to_string(),
-        email: format!("token_{}@imported.local", &refresh_token[3..9.min(refresh_token.len())]),
-        name: Some("Imported Account".to_string()),
+        email: user_info.email,
+        name,
         refresh_token,
     })
 }
 
+/// 获取配额信息
+#[command]
+pub async fn antigravity_get_quota(access_token: String) -> Result<quota::QuotaData, String> {
+    let (data, _err) = quota::fetch_quota(&access_token, None).await?;
+    Ok(data)
+}
 /// 自动扫描数据库
 #[command]
 pub fn antigravity_scan_databases() -> Result<Vec<FoundToken>, String> {
@@ -143,8 +159,15 @@ fn scan_single_db(path: &PathBuf) -> Result<Vec<FoundToken>, String> {
 /// 选择数据库文件
 /// 
 /// 注意：此功能需要 tauri-plugin-dialog，当前返回 None 让前端使用手动输入
+/// 选择数据库文件
 #[command]
-pub fn select_db_file() -> Result<Option<String>, String> {
-    // 暂不实现文件选择对话框，返回 None 让前端使用手动输入路径
-    Ok(None)
+pub async fn select_db_file(app: AppHandle) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    
+    let result = app.dialog().file()
+        .add_filter("VSCDB", &["vscdb"])
+        .add_filter("All Files", &["*"])
+        .blocking_pick_file();
+        
+    Ok(result.map(|path| path.to_string()))
 }

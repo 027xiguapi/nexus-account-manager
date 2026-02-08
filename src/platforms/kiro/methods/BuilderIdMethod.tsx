@@ -8,6 +8,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2, CheckCircle2, AlertCircle, Copy, Check, ExternalLink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+// @ts-ignore
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { invoke } from '@tauri-apps/api/core'
 import type { AddMethodProps } from '@/types/platform'
 import type { KiroAccount } from '@/types/account'
@@ -16,10 +18,13 @@ import { cn } from '@/lib/utils'
 type Status = 'idle' | 'waiting' | 'success' | 'error'
 
 interface DeviceCodeData {
+    deviceCode: string
     userCode: string
     verificationUri: string
     expiresIn: number
     interval: number
+    clientId: string
+    clientSecret: string
 }
 
 export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps) {
@@ -28,7 +33,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
 
     const [status, setStatus] = useState<Status>('idle')
     const [message, setMessage] = useState('')
-    const [deviceCode, setDeviceCode] = useState<DeviceCodeData | null>(null)
+    const [deviceCodeData, setDeviceCodeData] = useState<DeviceCodeData | null>(null)
     const [copied, setCopied] = useState(false)
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -45,17 +50,23 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
         setMessage(isEn ? 'Initializing...' : '正在初始化...')
 
         try {
-            const result = await invoke<DeviceCodeData>('kiro_start_builderid_login')
-            setDeviceCode(result)
+            const result = await invoke<DeviceCodeData>('kiro_start_device_auth')
+            setDeviceCodeData(result)
             setMessage(isEn
                 ? 'Please copy the code and complete authorization in browser'
                 : '请复制验证码并在浏览器中完成授权')
 
             // 打开浏览器
-            window.open(result.verificationUri, '_blank')
+            try {
+                // @ts-ignore
+                await openUrl(result.verificationUri)
+            } catch (e) {
+                console.error("Open failed, fallback", e)
+                window.open(result.verificationUri, '_blank')
+            }
 
             // 开始轮询
-            startPolling(result.interval)
+            startPolling(result.interval, result)
         } catch (e: any) {
             setStatus('error')
             setMessage(e.message || (isEn ? 'Failed to start login' : '登录启动失败'))
@@ -64,12 +75,16 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
     }
 
     // 轮询授权状态
-    const startPolling = (interval: number) => {
+    const startPolling = (interval: number, authData: DeviceCodeData) => {
         if (pollRef.current) clearInterval(pollRef.current)
 
         pollRef.current = setInterval(async () => {
             try {
-                const result = await invoke<{ completed: boolean; account?: KiroAccount; error?: string }>('kiro_poll_builderid_auth')
+                const result = await invoke<{ completed: boolean; account?: KiroAccount; error?: string }>('kiro_poll_token', {
+                    deviceCode: authData.deviceCode,
+                    clientId: authData.clientId,
+                    clientSecret: authData.clientSecret
+                })
 
                 if (result.completed && result.account) {
                     clearInterval(pollRef.current!)
@@ -96,8 +111,8 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
 
     // 复制验证码
     const handleCopy = async () => {
-        if (deviceCode?.userCode) {
-            await navigator.clipboard.writeText(deviceCode.userCode)
+        if (deviceCodeData?.userCode) {
+            await navigator.clipboard.writeText(deviceCodeData.userCode)
             setCopied(true)
             setTimeout(() => setCopied(false), 2000)
         }
@@ -106,9 +121,9 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
     // 取消登录
     const handleCancel = () => {
         if (pollRef.current) clearInterval(pollRef.current)
-        invoke('kiro_cancel_builderid_login').catch(() => { })
+        invoke('kiro_cancel_auth').catch(() => { })
         setStatus('idle')
-        setDeviceCode(null)
+        setDeviceCodeData(null)
         setMessage('')
     }
 
@@ -126,7 +141,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
             )}
 
             {/* Device Code Display */}
-            {deviceCode && status === 'waiting' && (
+            {deviceCodeData && status === 'waiting' && (
                 <div className="space-y-3 animate-in fade-in">
                     <div className="text-center p-4 rounded-lg border bg-muted/30">
                         <p className="text-xs text-muted-foreground mb-2">
@@ -134,7 +149,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                         </p>
                         <div className="flex items-center justify-center gap-2">
                             <code className="text-2xl font-bold tracking-widest">
-                                {deviceCode.userCode}
+                                {deviceCodeData.userCode}
                             </code>
                             <Button variant="ghost" size="icon" onClick={handleCopy}>
                                 {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
@@ -146,7 +161,11 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                         <Button
                             variant="outline"
                             className="flex-1"
-                            onClick={() => window.open(deviceCode.verificationUri, '_blank')}
+                            onClick={async () => {
+                                // @ts-ignore
+                                try { await openUrl(deviceCodeData.verificationUri) }
+                                catch (e) { window.open(deviceCodeData.verificationUri, '_blank') }
+                            }}
                         >
                             <ExternalLink className="mr-2 h-4 w-4" />
                             {isEn ? 'Open Browser' : '打开浏览器'}
