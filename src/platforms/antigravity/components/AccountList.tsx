@@ -2,10 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Plus } from 'lucide-react'
 import { usePlatformStore } from '@/stores/usePlatformStore'
+import { useMemo } from 'react'
 
 export function AntigravityAccountList() {
-  const accounts = usePlatformStore((state) =>
-    state.accounts.filter((acc) => acc.platform === 'antigravity')
+  const accounts = usePlatformStore((state) => state.accounts)
+  
+  // 使用 useMemo 缓存过滤结果
+  const antigravityAccounts = useMemo(
+    () => accounts.filter((acc) => acc.platform === 'antigravity'),
+    [accounts]
   )
 
   return (
@@ -23,7 +28,7 @@ export function AntigravityAccountList() {
         </Button>
       </div>
 
-      {accounts.length === 0 ? (
+      {antigravityAccounts.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-[rgb(var(--secondary))] mb-4">No accounts yet</p>
@@ -35,7 +40,7 @@ export function AntigravityAccountList() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {accounts.map((account) => (
+          {antigravityAccounts.map((account) => (
             <Card key={account.id}>
               <CardHeader>
                 <CardTitle className="text-lg">{account.name}</CardTitle>

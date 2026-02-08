@@ -4,6 +4,7 @@ mod commands;
 use commands::*;
 use core::Storage;
 use std::sync::Mutex;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

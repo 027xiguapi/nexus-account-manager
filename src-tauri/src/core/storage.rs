@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager}; // ✅ 添加 Manager
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {

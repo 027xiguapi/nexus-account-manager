@@ -7,7 +7,7 @@ pub struct AppState {
 }
 
 #[tauri::command]
-pub fn get_accounts(app: AppHandle, state: State<AppState>) -> Result<Vec<Account>, String> {
+pub fn get_accounts(_app: AppHandle, state: State<AppState>) -> Result<Vec<Account>, String> {
     let storage = state.storage.lock().unwrap();
     Ok(storage.accounts.clone())
 }

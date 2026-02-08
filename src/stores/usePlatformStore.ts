@@ -12,9 +12,10 @@ interface PlatformStore {
   deleteAccount: (id: string) => void
   setActiveAccount: (account: BaseAccount | null) => void
   setSelectedPlatform: (platform: string | null) => void
+  getAccountsByPlatform: (platform: string) => BaseAccount[]
 }
 
-export const usePlatformStore = create<PlatformStore>((set) => ({
+export const usePlatformStore = create<PlatformStore>((set, get) => ({
   accounts: [],
   activeAccount: null,
   selectedPlatform: null,
@@ -42,4 +43,9 @@ export const usePlatformStore = create<PlatformStore>((set) => ({
   setActiveAccount: (account) => set({ activeAccount: account }),
   
   setSelectedPlatform: (platform) => set({ selectedPlatform: platform }),
+  
+  // 添加选择器函数
+  getAccountsByPlatform: (platform) => {
+    return get().accounts.filter((acc) => acc.platform === platform)
+  },
 }))

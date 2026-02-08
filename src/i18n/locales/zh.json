@@ -1,0 +1,58 @@
+{
+  "app": {
+    "name": "Nexus 账号管理器"
+  },
+  "nav": {
+    "dashboard": "仪表盘",
+    "accounts": "账号管理",
+    "settings": "设置"
+  },
+  "dashboard": {
+    "title": "仪表盘",
+    "welcome": "欢迎使用 Nexus 账号管理器",
+    "totalAccounts": "总账号数",
+    "activeAccount": "活跃账号",
+    "platforms": "平台数量",
+    "platformsTitle": "平台"
+  },
+  "accounts": {
+    "title": "账号管理",
+    "addAccount": "添加账号",
+    "noAccounts": "暂无账号",
+    "addFirst": "添加第一个账号",
+    "edit": "编辑",
+    "switch": "切换",
+    "delete": "删除"
+  },
+  "settings": {
+    "title": "设置",
+    "subtitle": "管理应用偏好设置",
+    "appearance": "外观",
+    "theme": "主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统",
+    "language": "语言",
+    "about": "关于",
+    "version": "版本",
+    "author": "作者",
+    "license": "许可证"
+  },
+  "platforms": {
+    "antigravity": {
+      "name": "Antigravity",
+      "description": "Google/Anthropic AI 服务管理"
+    },
+    "kiro": {
+      "name": "Kiro IDE",
+      "description": "Kiro IDE 账号管理"
+    }
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "close": "关闭",
+    "accounts": "账号"
+  }
+}

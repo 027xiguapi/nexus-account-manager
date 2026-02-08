@@ -3,18 +3,22 @@ import { MainLayout } from './components/layout/MainLayout'
 import { Dashboard } from './pages/Dashboard'
 import { Accounts } from './pages/Accounts'
 import { Settings } from './pages/Settings'
+import { ThemeManager } from './components/common/ThemeManager'
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="accounts" element={<Accounts />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <>
+      <ThemeManager />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="accounts" element={<Accounts />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </>
   )
 }
 

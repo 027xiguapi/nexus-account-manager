@@ -2,10 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Plus } from 'lucide-react'
 import { usePlatformStore } from '@/stores/usePlatformStore'
+import { useMemo } from 'react'
 
 export function KiroAccountList() {
-  const accounts = usePlatformStore((state) =>
-    state.accounts.filter((acc) => acc.platform === 'kiro')
+  const accounts = usePlatformStore((state) => state.accounts)
+  
+  // 使用 useMemo 缓存过滤结果
+  const kiroAccounts = useMemo(
+    () => accounts.filter((acc) => acc.platform === 'kiro'),
+    [accounts]
   )
 
   return (
@@ -23,7 +28,7 @@ export function KiroAccountList() {
         </Button>
       </div>
 
-      {accounts.length === 0 ? (
+      {kiroAccounts.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-[rgb(var(--secondary))] mb-4">No accounts yet</p>
@@ -35,7 +40,7 @@ export function KiroAccountList() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {accounts.map((account) => (
+          {kiroAccounts.map((account) => (
             <Card key={account.id}>
               <CardHeader>
                 <CardTitle className="text-lg">{account.name}</CardTitle>
