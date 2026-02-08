@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { MachineIdService } from '@/services/MachineIdService'
 import { RefreshCw, Copy, Check } from 'lucide-react'
 
@@ -182,7 +182,7 @@ export function MachineIdManager({ accountId }: MachineIdManagerProps) {
                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
-                <Button variant="danger" onClick={handleUnbind} disabled={loading} className="w-full">
+                <Button variant="destructive" onClick={handleUnbind} disabled={loading} className="w-full">
                   Unbind Machine ID
                 </Button>
               </>

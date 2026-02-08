@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom'
 import { getAllPlatforms, getPlatform } from '@/platforms/registry'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 
 export function Accounts() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -25,7 +25,7 @@ export function Accounts() {
           return (
             <Button
               key={platform.id}
-              variant={isActive ? 'primary' : 'ghost'}
+              variant={isActive ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setSearchParams({ platform: platform.id })}
             >

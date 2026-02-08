@@ -38,6 +38,13 @@ pub fn run() {
             import_accounts,
             core::storage::set_storage_path,
             core::storage::get_current_storage_path,
+            import::import_from_db,
+            machine::get_machine_id,
+            machine::set_machine_id,
+            machine::bind_machine_id,
+            machine::unbind_machine_id,
+            machine::get_machine_id_for_account,
+            machine::get_all_machine_id_bindings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

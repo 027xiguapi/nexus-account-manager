@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+
 use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager}; // ✅ 添加 Manager
@@ -20,12 +20,16 @@ pub struct Account {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Storage {
     pub accounts: Vec<Account>,
+    pub machine_id: Option<String>,
+    pub account_machine_bindings: std::collections::HashMap<String, String>,
 }
 
 impl Storage {
     pub fn new() -> Self {
         Self {
             accounts: Vec::new(),
+            machine_id: None,
+            account_machine_bindings: std::collections::HashMap::new(),
         }
     }
 

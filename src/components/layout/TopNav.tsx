@@ -23,23 +23,30 @@ export function TopNav() {
   }
 
   return (
-    <nav className="h-14 bg-card border-b border-border flex items-center justify-between px-6">
+    <nav className="h-16 flex items-center justify-between px-6 z-40 sticky top-0 bg-background/50 backdrop-blur-xl border-b border-white/5 supports-[backdrop-filter]:bg-background/20">
       {/* Logo */}
-      <div className="flex items-center gap-8">
-        <h1 className="text-xl font-bold">{t('app.name')}</h1>
+      <div className="flex items-center gap-10">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <span className="font-bold text-white text-lg">N</span>
+          </div>
+          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70 tracking-tight">
+            {t('app.name')}
+          </h1>
+        </div>
 
         {/* Navigation */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center p-1 bg-white/5 rounded-full border border-white/5 backdrop-blur-3xl">
           {navigation.map((item) => (
             <NavLink
               key={item.name}
               to={item.href}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300',
                   isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-background'
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
                 )
               }
             >
@@ -53,18 +60,18 @@ export function TopNav() {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <button
           onClick={toggleLanguage}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium hover:bg-background transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-muted-foreground hover:text-foreground"
         >
-          <Globe className="h-4 w-4" />
+          <Globe className="h-3.5 w-3.5" />
           {i18n.language === 'zh' ? '中文' : 'EN'}
         </button>
 
         <button
           onClick={toggleTheme}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium hover:bg-background transition-colors"
+          className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-muted-foreground hover:text-foreground hover:shadow-lg hover:shadow-purple-500/10"
         >
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>

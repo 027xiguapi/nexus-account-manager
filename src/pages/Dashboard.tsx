@@ -6,7 +6,7 @@ import { StatCard } from '@/components/dashboard/StatCard'
 import { QuotaCard } from '@/components/dashboard/QuotaCard'
 import { SubscriptionCard } from '@/components/dashboard/SubscriptionCard'
 import { Users, Activity, Layers, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { AntigravityAccount, KiroAccount } from '@/types/account'
 
 export function Dashboard() {
@@ -23,9 +23,11 @@ export function Dashboard() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+            {t('dashboard.title')}
+          </h1>
           <p className="text-muted-foreground mt-2">
-            Overview of your AI accounts and licenses.
+            {t('dashboard.subtitle')}
           </p>
         </div>
         <Button onClick={() => navigate('/accounts')}>
@@ -34,31 +36,36 @@ export function Dashboard() {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Overview Stats */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title={t('dashboard.totalAccounts')}
           value={accounts.length}
           icon={Users}
           description="Total managed accounts"
+          className="bg-card/50"
         />
         <StatCard
           title={t('dashboard.activeAccount')}
           value={activeAccounts}
           icon={Activity}
           description="Currently active"
-          trend={{ value: 12, label: 'vs last month', positive: true }} // Mock trend for premium feel
+          trend={{ value: 12, label: 'vs last month', positive: true }}
+          className="bg-card/50"
         />
         <StatCard
           title="Antigravity"
           value={antigravityAccounts.length}
           icon={Layers}
           description="AI Service Accounts"
+          className="bg-card/50"
         />
         <StatCard
           title="Kiro IDE"
           value={kiroAccounts.length}
           icon={Layers}
           description="IDE Licenses"
+          className="bg-card/50"
         />
       </div>
 

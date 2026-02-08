@@ -9,32 +9,60 @@
     },
     "dashboard": {
         "title": "Dashboard",
+        "subtitle": "Overview of your AI accounts and licenses",
+        "manageAccounts": "Manage Accounts",
         "totalAccounts": "Total Accounts",
-        "activeAccount": "Active Accounts",
+        "activeAccount": "Active Account",
         "antigravity": "Antigravity",
         "kiro": "Kiro IDE",
         "quotaUsage": "Quota Usage (Antigravity)",
         "averageQuota": "Average Quota Usage",
         "licenseTypes": "License Types (Kiro)",
-        "platformsTitle": "Platform Quick Access"
+        "platformsTitle": "Platform Quick Access",
+        "acrossAntigravity": "Across {{count}} Antigravity accounts",
+        "subscriptionDistribution": "Subscription Distribution",
+        "noKiroAccounts": "No Kiro accounts"
     },
     "platforms": {
         "antigravity": {
-            "name": "Antigravity"
+            "name": "Antigravity",
+            "description": "Manage your Google/Anthropic AI service accounts"
         },
         "kiro": {
-            "name": "Kiro IDE"
+            "name": "Kiro IDE",
+            "description": "Manage your Kiro IDE accounts and licenses"
         }
     },
     "common": {
-        "accounts": "Accounts"
+        "accounts": "accounts",
+        "switch": "Switch",
+        "refresh": "Refresh",
+        "copy": "Copy",
+        "export": "Export",
+        "details": "Details",
+        "delete": "Delete",
+        "copied": "Copied!",
+        "clickToCopy": "Click to copy",
+        "confirmDelete": "Are you sure you want to delete {{name}}?",
+        "cancel": "Cancel",
+        "save": "Save",
+        "confirm": "Confirm",
+        "loading": "Loading...",
+        "success": "Success",
+        "error": "Error",
+        "warning": "Warning"
     },
     "accounts": {
         "title": "Accounts",
         "manage": "Manage Accounts",
         "add": "Add Account",
         "noAccounts": "No accounts yet",
-        "addFirst": "Add Your First Account"
+        "addFirst": "Add your first account",
+        "active": "Active",
+        "usage": "Usage",
+        "banned": "Banned",
+        "expired": "Expired",
+        "doubleClickToSwitch": "Double-click to switch"
     },
     "dialog": {
         "addAccount": "Add New Account",
@@ -43,17 +71,93 @@
         "email": "Email",
         "name": "Display Name (Optional)",
         "accessToken": "Access Token",
-        "sessionToken": "Session Token",
+        "sessionToken": "Session Token (Cookie)",
+        "refreshToken": "Refresh Token",
+        "machineId": "Machine ID (Optional)",
         "tabs": {
             "antigravity": "Antigravity",
             "kiro": "Kiro IDE"
-        }
+        },
+        "addMethod": {
+            "oauth": "OAuth",
+            "oauthDesc": "Login via Google",
+            "token": "Token",
+            "tokenDesc": "Paste refresh tokens",
+            "import": "Import",
+            "importDesc": "From database"
+        },
+        "tokenPlaceholder": "Paste refresh tokens here...\n\nSupports:\n• Single token: 1//0abc...\n• Multiple lines\n• JSON array",
+        "tokenHint": "Tokens starting with 1// will be auto-detected"
+    },
+    "export": {
+        "title": "Export Accounts",
+        "format": {
+            "json": "JSON",
+            "jsonDesc": "Full data, can be imported",
+            "txt": "TXT",
+            "txtDesc": "Text format",
+            "csv": "CSV",
+            "csvDesc": "Excel compatible",
+            "clipboard": "Clipboard",
+            "clipboardDesc": "Copy to clipboard"
+        },
+        "includeCredentials": "Include credentials",
+        "includeCredentialsDesc": "Include tokens for full import",
+        "selected": "{{count}} selected",
+        "all": "All {{count}}"
+    },
+    "details": {
+        "title": "Account Details",
+        "basicInfo": "Basic Information",
+        "tokenDevice": "Token & Device",
+        "kiroDetails": "Kiro Details",
+        "email": "Email",
+        "name": "Name",
+        "lastUsed": "Last Used",
+        "created": "Created",
+        "usage": "Usage",
+        "subscription": "Subscription",
+        "expires": "Expires"
     },
     "settings": {
         "title": "Settings",
         "appearance": "Appearance",
         "theme": "Theme",
         "language": "Language",
-        "storage": "Storage Path"
+        "storage": "Data Storage Path",
+        "storagePath": "Storage Path",
+        "browse": "Browse",
+        "reset": "Reset",
+        "about": "About",
+        "version": "Version",
+        "subtitle": "Manage your application preferences",
+        "dataLocation": "Data Location",
+        "dataManagement": "Data Management",
+        "importLegacy": "Import Legacy Data",
+        "exportData": "Export Data",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System",
+        "author": "Author",
+        "license": "License",
+        "currentPath": "Current path: {{path}}"
+    },
+    "export": {
+        "title": "Export Accounts",
+        "selected": "{{count}} selected",
+        "all": "All {{count}}",
+        "json": "JSON",
+        "jsonDesc": "Full data, can be imported",
+        "txt": "TXT",
+        "txtDesc": "Text format",
+        "csv": "CSV",
+        "csvDesc": "Excel compatible",
+        "clipboard": "Clipboard",
+        "clipboardDesc": "Copy to clipboard",
+        "includeCredentials": "Include credentials",
+        "includeCredentialsDesc": "Include tokens for full import",
+        "copied": "Copied",
+        "copy": "Copy",
+        "action": "Export"
     }
 }

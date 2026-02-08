@@ -1,80 +1,82 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { useState } from 'react'
 import { AddAccountDialog } from '@/components/dialogs/AddAccountDialog'
-import { Button } from '@/components/ui/Button'
+import { ExportDialog } from '@/components/dialogs/ExportDialog'
+import { AccountCard } from '@/components/accounts/AccountCard'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { KiroAccount } from '@/types/account'
+import { Download } from 'lucide-react'
 
 export function KiroAccountList() {
+  const { t } = useTranslation()
   const accounts = usePlatformStore((state) => state.accounts)
+  const [exportOpen, setExportOpen] = useState(false)
 
-  // Use useMemo with type predicate to filter Kiro accounts
   const kiroAccounts = useMemo(
     () => accounts.filter((acc): acc is KiroAccount => acc.platform === 'kiro'),
     [accounts]
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold">Kiro Accounts</h2>
-          <p className="text-muted-foreground mt-1">
-            Manage your Kiro IDE accounts and licenses
+          <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+            {t('platforms.kiro.name')}
+          </h2>
+          <p className="text-muted-foreground mt-2 text-lg font-light">
+            {t('platforms.kiro.description', 'Manage your Kiro IDE accounts and licenses')}
           </p>
         </div>
-        <AddAccountDialog />
+        <div className="flex items-center gap-3">
+          {kiroAccounts.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setExportOpen(true)}
+              className="bg-background/50 backdrop-blur-sm border-white/10 hover:bg-background/80"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {t('common.export')}
+            </Button>
+          )}
+          <div className="relative z-10">
+            <AddAccountDialog />
+          </div>
+        </div>
       </div>
 
       {kiroAccounts.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">No accounts yet</p>
+        <Card className="bg-card/30 border-dashed border-2 border-muted hover:border-muted-foreground/50 transition-colors">
+          <CardContent className="flex flex-col items-center justify-center py-24">
+            <div className="p-4 rounded-full bg-background/50 mb-4 ring-1 ring-white/10">
+              <div className="h-8 w-8 rounded-full bg-primary/20 animate-pulse" />
+            </div>
+            <p className="text-lg font-medium mb-2">{t('accounts.noAccounts', 'No accounts yet')}</p>
+            <p className="text-sm text-muted-foreground mb-6">Get started by adding your first account</p>
             <AddAccountDialog />
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {kiroAccounts.map((account) => (
-            <Card key={account.id}>
-              <CardHeader>
-                <CardTitle className="text-lg">{account.name || 'Unnamed Account'}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-2">
-                  <p className="text-sm text-muted-foreground">{account.email}</p>
-
-                  {/* Machine ID Display */}
-                  {account.machineId && (
-                    <p className="text-xs font-mono bg-secondary/10 p-1 rounded mt-1 truncate">
-                      ID: {account.machineId}
-                    </p>
-                  )}
-
-                  {/* Subscription Status */}
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-xs px-2 py-0.5 rounded-full border ${account.subscription?.type === 'Pro' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
-                      account.subscription?.type === 'Enterprise' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                        'bg-gray-500/10 text-gray-500 border-gray-500/20'
-                      }`}>
-                      {account.subscription?.type || 'Free'}
-                    </span>
-                  </div>
-
-                  <div className="mt-4 flex gap-2">
-                    <Button size="sm" variant="secondary">
-                      Manage
-                    </Button>
-                    <Button size="sm" variant="ghost">
-                      Unbind
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AccountCard
+              key={account.id}
+              account={account}
+              onExport={() => setExportOpen(true)}
+            />
           ))}
         </div>
       )}
+
+      <ExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        accounts={kiroAccounts}
+      />
     </div>
   )
 }
