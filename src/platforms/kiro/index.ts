@@ -1,12 +1,7 @@
 import { PlatformConfig } from '@/types/platform'
-import { Code2 } from 'lucide-react'
+import { Code2, Fingerprint, Users, Key } from 'lucide-react'
 import { KiroAccountList } from './components/AccountList'
-// import { ServiceFactory } from '@/services/ServiceFactory'
-// import { KiroAccountService } from './services/KiroAccountService'
-
-// 注册服务
-// 注册服务 (Legacy, disabled for re-architecture)
-// ServiceFactory.registerAccountService('kiro', new KiroAccountService())
+import { BuilderIdMethod, SocialMethod, TokenImportMethod } from './methods'
 
 export const kiroConfig: PlatformConfig = {
   id: 'kiro',
@@ -22,4 +17,29 @@ export const kiroConfig: PlatformConfig = {
     autoRefresh: true,
     quota: true,
   },
+
+  addMethods: [
+    {
+      id: 'builderid',
+      name: 'Builder ID',
+      description: 'AWS Builder ID 登录',
+      icon: Fingerprint,
+      component: BuilderIdMethod,
+    },
+    {
+      id: 'social',
+      name: '社交登录',
+      description: 'Google / GitHub',
+      icon: Users,
+      component: SocialMethod,
+    },
+    {
+      id: 'token',
+      name: 'Token 导入',
+      description: 'SSO / OIDC 凭证',
+      icon: Key,
+      component: TokenImportMethod,
+    },
+  ],
 }
+

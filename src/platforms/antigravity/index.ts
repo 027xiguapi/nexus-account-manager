@@ -1,6 +1,7 @@
 import { PlatformConfig } from '@/types/platform'
-import { Zap } from 'lucide-react'
+import { Zap, Globe, Key, Database } from 'lucide-react'
 import { AntigravityAccountList } from './components/AccountList'
+import { OAuthMethod, TokenMethod, ImportMethod } from './methods'
 
 export const antigravityConfig: PlatformConfig = {
   id: 'antigravity',
@@ -8,13 +9,38 @@ export const antigravityConfig: PlatformConfig = {
   icon: Zap,
   color: '#FF6B35',
   description: 'Google/Anthropic AI Services Management',
-  
+
   AccountList: AntigravityAccountList,
-  
+
   features: {
     oauth: true,
     quota: true,
     proxy: true,
     autoRefresh: true,
   },
+
+  addMethods: [
+    {
+      id: 'oauth',
+      name: 'OAuth',
+      description: 'Google 授权登录',
+      icon: Globe,
+      component: OAuthMethod,
+    },
+    {
+      id: 'token',
+      name: 'Token',
+      description: '粘贴刷新令牌',
+      icon: Key,
+      component: TokenMethod,
+    },
+    {
+      id: 'import',
+      name: '导入',
+      description: '从数据库导入',
+      icon: Database,
+      component: ImportMethod,
+    },
+  ],
 }
+

@@ -45,6 +45,19 @@ pub fn run() {
             machine::unbind_machine_id,
             machine::get_machine_id_for_account,
             machine::get_all_machine_id_bindings,
+            // Antigravity 命令
+            antigravity::antigravity_prepare_oauth_url,
+            antigravity::antigravity_complete_oauth,
+            antigravity::antigravity_add_by_token,
+            antigravity::antigravity_scan_databases,
+            antigravity::select_db_file,
+            // Kiro 命令
+            kiro::kiro_start_builderid_login,
+            kiro::kiro_poll_builderid_auth,
+            kiro::kiro_cancel_builderid_login,
+            kiro::kiro_social_login,
+            kiro::kiro_import_sso_token,
+            kiro::kiro_verify_credentials,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
