@@ -1,0 +1,59 @@
+{
+    "app": {
+        "name": "Nexus Account Manager"
+    },
+    "nav": {
+        "dashboard": "Dashboard",
+        "accounts": "Accounts",
+        "settings": "Settings"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "totalAccounts": "Total Accounts",
+        "activeAccount": "Active Accounts",
+        "antigravity": "Antigravity",
+        "kiro": "Kiro IDE",
+        "quotaUsage": "Quota Usage (Antigravity)",
+        "averageQuota": "Average Quota Usage",
+        "licenseTypes": "License Types (Kiro)",
+        "platformsTitle": "Platform Quick Access"
+    },
+    "platforms": {
+        "antigravity": {
+            "name": "Antigravity"
+        },
+        "kiro": {
+            "name": "Kiro IDE"
+        }
+    },
+    "common": {
+        "accounts": "Accounts"
+    },
+    "accounts": {
+        "title": "Accounts",
+        "manage": "Manage Accounts",
+        "add": "Add Account",
+        "noAccounts": "No accounts yet",
+        "addFirst": "Add Your First Account"
+    },
+    "dialog": {
+        "addAccount": "Add New Account",
+        "save": "Save Account",
+        "cancel": "Cancel",
+        "email": "Email",
+        "name": "Display Name (Optional)",
+        "accessToken": "Access Token",
+        "sessionToken": "Session Token",
+        "tabs": {
+            "antigravity": "Antigravity",
+            "kiro": "Kiro IDE"
+        }
+    },
+    "settings": {
+        "title": "Settings",
+        "appearance": "Appearance",
+        "theme": "Theme",
+        "language": "Language",
+        "storage": "Storage Path"
+    }
+}

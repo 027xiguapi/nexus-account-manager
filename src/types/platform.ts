@@ -1,18 +1,9 @@
 import { LucideIcon } from 'lucide-react'
+import { Account } from './account'
 
-// 基础账号模型
-export interface BaseAccount {
-  id: string
-  platform: string
-  name: string
-  email?: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-  tags?: string[]
-  group?: string
-  platformData: Record<string, any>
-}
+export type { Account } from './account'
+export type BaseAccount = Account
+
 
 // 平台配额信息
 export interface Quota {
@@ -38,12 +29,12 @@ export interface PlatformConfig {
   icon: LucideIcon
   color: string
   description: string
-  
+
   // 页面组件
   AccountList: React.ComponentType<any>
   AccountDetail?: React.ComponentType<any>
   Settings?: React.ComponentType<any>
-  
+
   // 特性标志
   features: PlatformFeatures
 }

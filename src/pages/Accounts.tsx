@@ -17,7 +17,7 @@ export function Accounts() {
   return (
     <div className="space-y-6">
       {/* Platform Tabs */}
-      <div className="flex gap-2 border-b border-[rgb(var(--border))] pb-2">
+      <div className="flex gap-2 border-b border-border pb-2">
         {platforms.map((platform) => {
           const Icon = platform.icon
           const isActive = platform.id === selectedPlatformId

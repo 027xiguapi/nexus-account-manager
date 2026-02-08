@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline'
   size?: 'sm' | 'md' | 'lg'
 }
 
@@ -18,12 +18,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
           {
-            'bg-[rgb(var(--primary))] text-[rgb(var(--primary-foreground))] hover:opacity-90':
+            'bg-primary text-primary-foreground hover:opacity-90':
               variant === 'primary',
-            'bg-[rgb(var(--card))] text-[rgb(var(--card-foreground))] hover:bg-[rgb(var(--border))]':
+            'bg-card text-card-foreground hover:bg-border':
               variant === 'secondary',
-            'hover:bg-[rgb(var(--card))]': variant === 'ghost',
-            'bg-red-500 text-white hover:bg-red-600': variant === 'danger',
+            'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground':
+              variant === 'outline',
+            'hover:bg-card': variant === 'ghost',
+            'bg-destructive text-destructive-foreground hover:bg-destructive/90': variant === 'danger',
           },
           {
             'px-3 py-1.5 text-sm': size === 'sm',

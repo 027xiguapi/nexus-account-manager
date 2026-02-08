@@ -20,26 +20,25 @@ export function TitleBar() {
   }
 
   return (
-    <div 
-      className="h-9 bg-[rgb(var(--card))] flex items-center justify-between px-4 select-none"
-      style={{ borderTop: '1px solid rgb(255, 255, 255)' }}
+    <div
+      className="h-9 bg-background flex items-center justify-between px-4 select-none border-b border-white/5"
       data-tauri-drag-region
     >
-      <div className="text-sm font-medium flex-1" data-tauri-drag-region>
+      <div className="text-xs font-medium text-muted-foreground flex-1" data-tauri-drag-region>
         Nexus Account Manager
       </div>
-      
+
       <div className="flex items-center gap-1">
         <button
           onClick={handleMinimize}
-          className="w-8 h-8 flex items-center justify-center hover:bg-[rgb(var(--background))] rounded transition-colors"
+          className="w-8 h-8 flex items-center justify-center hover:bg-secondary rounded transition-colors text-muted-foreground hover:text-foreground"
           type="button"
         >
           <Minus className="w-4 h-4" />
         </button>
         <button
           onClick={handleMaximize}
-          className="w-8 h-8 flex items-center justify-center hover:bg-[rgb(var(--background))] rounded transition-colors"
+          className="w-8 h-8 flex items-center justify-center hover:bg-secondary rounded transition-colors text-muted-foreground hover:text-foreground"
           type="button"
         >
           <Square className="w-3 h-3" />

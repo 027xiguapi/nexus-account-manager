@@ -1,0 +1,59 @@
+{
+    "app": {
+        "name": "Nexus 账号管理器"
+    },
+    "nav": {
+        "dashboard": "仪表盘",
+        "accounts": "账号管理",
+        "settings": "设置"
+    },
+    "dashboard": {
+        "title": "仪表盘",
+        "totalAccounts": "总账号数",
+        "activeAccount": "活跃账号",
+        "antigravity": "Antigravity",
+        "kiro": "Kiro IDE",
+        "quotaUsage": "配额使用率 (Antigravity)",
+        "averageQuota": "平均配额使用率",
+        "licenseTypes": "许可类型 (Kiro)",
+        "platformsTitle": "平台快速访问"
+    },
+    "platforms": {
+        "antigravity": {
+            "name": "Antigravity"
+        },
+        "kiro": {
+            "name": "Kiro IDE"
+        }
+    },
+    "common": {
+        "accounts": "个账号"
+    },
+    "accounts": {
+        "title": "账号管理",
+        "manage": "管理账号",
+        "add": "添加账号",
+        "noAccounts": "暂无账号",
+        "addFirst": "添加您的第一个账号"
+    },
+    "dialog": {
+        "addAccount": "添加新账号",
+        "save": "保存账号",
+        "cancel": "取消",
+        "email": "邮箱",
+        "name": "显示名称 (可选)",
+        "accessToken": "访问令牌 (Access Token)",
+        "sessionToken": "会话令牌 (Session Cookie)",
+        "tabs": {
+            "antigravity": "Antigravity",
+            "kiro": "Kiro IDE"
+        }
+    },
+    "settings": {
+        "title": "设置",
+        "appearance": "外观",
+        "theme": "主题",
+        "language": "语言",
+        "storage": "数据存储路径"
+    }
+}

@@ -8,14 +8,13 @@ use tauri::{AppHandle, Manager}; // ✅ 添加 Manager
 pub struct Account {
     pub id: String,
     pub platform: String,
-    pub name: String,
-    pub email: Option<String>,
+    pub name: Option<String>,
+    pub email: String,
+    pub avatar: Option<String>,
     pub is_active: bool,
-    pub created_at: String,
-    pub updated_at: String,
-    pub tags: Option<Vec<String>>,
-    pub group: Option<String>,
-    pub platform_data: HashMap<String, serde_json::Value>,
+    pub last_used_at: i64,
+    pub created_at: i64,
+    pub platform_data: serde_json::Value,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -49,7 +48,7 @@ impl Storage {
     pub fn save(&self, app: &AppHandle) -> Result<(), String> {
         let path = get_storage_path(app)?;
         
-        // 确保目录存在
+        // Ensure directory exists
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)
                 .map_err(|e| format!("Failed to create directory: {}", e))?;
@@ -65,11 +64,39 @@ impl Storage {
     }
 }
 
+// Global configuration state for custom path
+pub struct StorageConfig {
+    pub custom_path: std::sync::Mutex<Option<PathBuf>>,
+}
+
 fn get_storage_path(app: &AppHandle) -> Result<PathBuf, String> {
+    // Check if custom path is set in state
+    if let Some(state) = app.try_state::<StorageConfig>() {
+        if let Ok(custom_path) = state.custom_path.lock() {
+            if let Some(path) = &*custom_path {
+                return Ok(path.clone());
+            }
+        }
+    }
+
+    // Default path
     let app_dir = app
         .path()
         .app_data_dir()
         .map_err(|e| format!("Failed to get app data dir: {}", e))?;
     
     Ok(app_dir.join("accounts.json"))
+}
+
+#[tauri::command]
+pub fn set_storage_path(path: String, state: tauri::State<'_, StorageConfig>) -> Result<(), String> {
+    let mut custom_path = state.custom_path.lock().map_err(|e| e.to_string())?;
+    *custom_path = Some(PathBuf::from(path));
+    Ok(())
+}
+
+#[tauri::command]
+pub fn get_current_storage_path(app: AppHandle) -> Result<String, String> {
+    let path = get_storage_path(&app)?;
+    Ok(path.to_string_lossy().to_string())
 }

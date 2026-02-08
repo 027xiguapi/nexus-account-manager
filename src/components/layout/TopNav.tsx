@@ -23,11 +23,11 @@ export function TopNav() {
   }
 
   return (
-    <nav className="h-14 bg-[rgb(var(--card))] border-b border-[rgb(var(--border))] flex items-center justify-between px-6">
+    <nav className="h-14 bg-card border-b border-border flex items-center justify-between px-6">
       {/* Logo */}
       <div className="flex items-center gap-8">
         <h1 className="text-xl font-bold">{t('app.name')}</h1>
-        
+
         {/* Navigation */}
         <div className="flex items-center gap-1">
           {navigation.map((item) => (
@@ -38,8 +38,8 @@ export function TopNav() {
                 cn(
                   'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-[rgb(var(--primary))] text-[rgb(var(--primary-foreground))]'
-                    : 'text-[rgb(var(--foreground))] hover:bg-[rgb(var(--background))]'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-foreground hover:bg-background'
                 )
               }
             >
@@ -56,15 +56,15 @@ export function TopNav() {
       <div className="flex items-center gap-2">
         <button
           onClick={toggleLanguage}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium hover:bg-[rgb(var(--background))] transition-colors"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium hover:bg-background transition-colors"
         >
           <Globe className="h-4 w-4" />
           {i18n.language === 'zh' ? '中文' : 'EN'}
         </button>
-        
+
         <button
           onClick={toggleTheme}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium hover:bg-[rgb(var(--background))] transition-colors"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium hover:bg-background transition-colors"
         >
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>

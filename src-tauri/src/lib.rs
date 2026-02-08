@@ -11,7 +11,12 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            // 初始化存储
+            // Initialize custom storage config state
+            app.manage(core::StorageConfig {
+                custom_path: Mutex::new(None), // TODO: Load from persistent settings if possible
+            });
+
+            // Initialize storage
             let storage = Storage::load(&app.handle())
                 .unwrap_or_else(|e| {
                     eprintln!("Failed to load storage: {}", e);
@@ -31,6 +36,8 @@ pub fn run() {
             delete_account,
             export_accounts,
             import_accounts,
+            core::storage::set_storage_path,
+            core::storage::get_current_storage_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

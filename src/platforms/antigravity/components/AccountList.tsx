@@ -1,15 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { AddAccountDialog } from '@/components/dialogs/AddAccountDialog'
 import { Button } from '@/components/ui/Button'
-import { Plus } from 'lucide-react'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import { useMemo } from 'react'
+import { AntigravityAccount } from '@/types/account'
 
 export function AntigravityAccountList() {
   const accounts = usePlatformStore((state) => state.accounts)
-  
-  // 使用 useMemo 缓存过滤结果
+
+  // Use useMemo with type predicate to filter accounts
   const antigravityAccounts = useMemo(
-    () => accounts.filter((acc) => acc.platform === 'antigravity'),
+    () => accounts.filter((acc): acc is AntigravityAccount => acc.platform === 'antigravity'),
     [accounts]
   )
 
@@ -18,24 +19,18 @@ export function AntigravityAccountList() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Antigravity Accounts</h2>
-          <p className="text-[rgb(var(--secondary))] mt-1">
+          <p className="text-muted-foreground mt-1">
             Manage your Google/Anthropic AI service accounts
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Account
-        </Button>
+        <AddAccountDialog />
       </div>
 
       {antigravityAccounts.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-[rgb(var(--secondary))] mb-4">No accounts yet</p>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Your First Account
-            </Button>
+            <p className="text-muted-foreground mb-4">No accounts yet</p>
+            <AddAccountDialog />
           </CardContent>
         </Card>
       ) : (
@@ -43,17 +38,27 @@ export function AntigravityAccountList() {
           {antigravityAccounts.map((account) => (
             <Card key={account.id}>
               <CardHeader>
-                <CardTitle className="text-lg">{account.name}</CardTitle>
+                <CardTitle className="text-lg">{account.name || 'Unnamed Account'}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-[rgb(var(--secondary))]">{account.email}</p>
-                <div className="mt-4 flex gap-2">
-                  <Button size="sm" variant="secondary">
-                    Edit
-                  </Button>
-                  <Button size="sm" variant="ghost">
-                    Switch
-                  </Button>
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-muted-foreground">{account.email}</p>
+
+                  {/* Quota Display (Mock) */}
+                  {account.quota?.models && account.quota.models.length > 0 && (
+                    <div className="text-xs text-muted-foreground mt-2">
+                      Usage: {account.quota.models[0].percentage}%
+                    </div>
+                  )}
+
+                  <div className="mt-4 flex gap-2">
+                    <Button size="sm" variant="secondary">
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="ghost">
+                      Switch
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

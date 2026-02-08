@@ -4,7 +4,7 @@ import { TopNav } from './TopNav'
 
 export function MainLayout() {
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[rgb(var(--background))]">
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
       <TitleBar />
       <TopNav />
       <main className="flex-1 overflow-y-auto">
