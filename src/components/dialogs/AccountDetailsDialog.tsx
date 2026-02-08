@@ -37,9 +37,9 @@ export function AccountDetailsDialog({ account, open, onClose }: AccountDetailsD
 
     const getSubscriptionStyle = (tier: string) => {
         const t = tier.toLowerCase()
-        if (t.includes('ultra')) return 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-        if (t.includes('pro')) return 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-        if (t.includes('enterprise')) return 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+        if (t.includes('ultra')) return 'bg-purple-600 text-white border-purple-600'
+        if (t.includes('pro')) return 'bg-blue-600 text-white border-blue-600'
+        if (t.includes('enterprise')) return 'bg-orange-500 text-white border-orange-500'
         return 'bg-secondary text-secondary-foreground'
     }
 
@@ -77,11 +77,11 @@ export function AccountDetailsDialog({ account, open, onClose }: AccountDetailsD
                 onClick={onClose}
             />
 
-            <div className="relative bg-background/95 backdrop-blur-xl rounded-xl shadow-2xl w-[500px] max-h-[80vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-white/10">
+            <div className="relative bg-background rounded-xl shadow-2xl w-[500px] max-h-[80vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-border">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-border/50 bg-muted/20">
+                <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-muted/20">
                     <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold text-lg shadow-lg shadow-primary/20">
+                        <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shadow-sm">
                             {account.email.charAt(0).toUpperCase()}
                         </div>
                         <div>

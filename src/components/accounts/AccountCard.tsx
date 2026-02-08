@@ -25,9 +25,9 @@ import {
 // 订阅类型颜色
 const getSubscriptionStyle = (tier?: string) => {
     const t = (tier || '').toLowerCase()
-    if (t.includes('ultra')) return 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-    if (t.includes('pro')) return 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-    if (t.includes('enterprise')) return 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+    if (t.includes('ultra')) return 'bg-purple-600 text-white border-purple-600'
+    if (t.includes('pro')) return 'bg-blue-600 text-white border-blue-600'
+    if (t.includes('enterprise')) return 'bg-orange-500 text-white border-orange-500'
     return 'bg-secondary text-secondary-foreground'
 }
 
@@ -132,7 +132,7 @@ export const AccountCard = memo(function AccountCard({
 
                 {/* Active Indicator Line */}
                 {account.isActive && (
-                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-primary/50 shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+                    <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
                 )}
 
                 <CardContent className="p-5 space-y-4">

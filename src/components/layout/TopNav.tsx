@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { Home, Users, Settings, Moon, Sun, Globe } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { useTheme } from '@/hooks/useTheme'
 import { useTranslation } from 'react-i18next'
 
@@ -23,12 +24,12 @@ export function TopNav() {
   }
 
   return (
-    <nav className="h-16 flex items-center justify-between px-6 z-40 sticky top-0 bg-background/80 backdrop-blur-md border-b border-border shadow-sm transition-colors duration-300">
+    <nav className="h-16 flex items-center justify-between px-6 z-40 sticky top-0 bg-background border-b border-border transition-colors duration-300">
       {/* Logo */}
       <div className="flex items-center gap-10">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-blue-500 flex items-center justify-center shadow-sm">
-            <span className="font-bold text-white text-lg">N</span>
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
+            <span className="font-bold text-lg">N</span>
           </div>
           <h1 className="text-xl font-bold text-foreground tracking-tight">
             {t('app.name')}
@@ -36,17 +37,17 @@ export function TopNav() {
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center p-1 bg-muted/60 rounded-full border border-border/50">
+        <div className="flex items-center gap-1">
           {navigation.map((item) => (
             <NavLink
               key={item.name}
               to={item.href}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200',
+                  'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'bg-blue-500 text-white shadow-md'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    ? 'bg-secondary text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 )
               }
             >
@@ -58,21 +59,29 @@ export function TopNav() {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={toggleLanguage}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-muted/40 hover:bg-muted border border-transparent transition-all text-muted-foreground hover:text-foreground"
-        >
-          <Globe className="h-3.5 w-3.5" />
-          {i18n.language === 'zh' ? '中文' : 'EN'}
-        </button>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center border border-border rounded-md bg-background/50">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleLanguage}
+            className="h-8 px-3 text-xs font-medium hover:bg-muted text-muted-foreground hover:text-foreground"
+          >
+            <Globe className="h-3.5 w-3.5 mr-2" />
+            {i18n.language === 'zh' ? '中文' : 'EN'}
+          </Button>
 
-        <button
-          onClick={toggleTheme}
-          className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/40 hover:bg-muted border border-transparent transition-all text-muted-foreground hover:text-foreground"
-        >
-          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </button>
+          <div className="w-[1px] h-4 bg-border" />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-foreground"
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
     </nav>
   )

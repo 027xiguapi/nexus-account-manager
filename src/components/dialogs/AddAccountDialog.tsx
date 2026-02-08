@@ -15,22 +15,28 @@ import { getAllPlatforms, getPlatform } from '@/platforms/registry'
 import { cn } from '@/lib/utils'
 import type { Account } from '@/types/platform'
 
-interface AddAccountDialogProps {
-    defaultPlatform?: string
-}
-
-export function AddAccountDialog({ defaultPlatform }: AddAccountDialogProps) {
+export function AddAccountDialog() {
+    const [open, setOpen] = useState(false)
+    const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
+    const [step, setStep] = useState<'platform' | 'method' | 'form'>('platform')
     const { t } = useTranslation()
+    const { addAccount, loadAllAccounts } = usePlatformStore()
     const platforms = getAllPlatforms()
 
-    const [open, setOpen] = useState(false)
-    const [selectedPlatform, setSelectedPlatform] = useState(defaultPlatform || platforms[0]?.id || 'antigravity')
+    const handleOpenChange = (newOpen: boolean) => {
+        setOpen(newOpen)
+        if (!newOpen) {
+            // Reset state after transition
+            setTimeout(() => {
+                setStep('platform')
+                setSelectedPlatform(null)
+            }, 300)
+        }
+    }
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
 
-    const { addAccount, loadAllAccounts } = usePlatformStore()
-
     // 获取当前平台配置
-    const platform = getPlatform(selectedPlatform)
+    const platform = selectedPlatform ? getPlatform(selectedPlatform) : null
     const methods = platform?.addMethods || []
 
     // 平台切换时重置方法选择
@@ -77,7 +83,8 @@ export function AddAccountDialog({ defaultPlatform }: AddAccountDialogProps) {
                         <div className="flex items-center gap-3 mb-1.5">
                             <div className={cn(
                                 "p-2 rounded-lg transition-colors",
-                                isActive ? "bg-primary text-primary-foreground" : "bg-muted group-hover:bg-primary/10 group-hover:text-primary"
+                                "bg-muted group-hover:bg-primary/10 group-hover:text-primary",
+                                isActive && "bg-primary text-primary-foreground"
                             )}>
                                 <Icon className="h-5 w-5" />
                             </div>
@@ -105,7 +112,7 @@ export function AddAccountDialog({ defaultPlatform }: AddAccountDialogProps) {
         }
 
         const method = methods.find(m => m.id === selectedMethod)
-        if (!method) return null
+        if (!method || !selectedPlatform) return null
 
         const MethodComponent = method.component
 
@@ -122,9 +129,9 @@ export function AddAccountDialog({ defaultPlatform }: AddAccountDialogProps) {
     }
 
     return (
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setSelectedMethod(null) }}>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSelectedMethod(null); setTimeout(() => setSelectedPlatform(null), 300) } }}>
             <DialogTrigger asChild>
-                <Button variant="default">
+                <Button variant="default" className="shadow-sm">
                     <Plus className="mr-2 h-4 w-4" />
                     {t('accounts.add')}
                 </Button>
@@ -138,7 +145,7 @@ export function AddAccountDialog({ defaultPlatform }: AddAccountDialogProps) {
                 </DialogHeader>
 
                 {/* 平台选择 */}
-                <Tabs value={selectedPlatform} onValueChange={handlePlatformChange} className="w-full">
+                <Tabs value={selectedPlatform || ''} onValueChange={handlePlatformChange} className="w-full">
                     <TabsList className="grid w-full grid-cols-2 bg-muted p-1">
                         {platforms.map((p) => {
                             const Icon = p.icon

@@ -20,7 +20,7 @@ export function Dashboard() {
   const kiroAccounts = accounts.filter((a): a is KiroAccount => a.platform === 'kiro')
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -42,8 +42,7 @@ export function Dashboard() {
           value={accounts.length}
           icon={Users}
           description="Total managed accounts"
-          variant="blue"
-          className="bg-card shadow-sm border-border/60"
+          className="bg-card shadow-sm border-border"
         />
         <StatCard
           title={t('dashboard.activeAccount')}
@@ -51,35 +50,32 @@ export function Dashboard() {
           icon={Activity}
           description="Currently active"
           trend={{ value: 12, label: 'vs last month', positive: true }}
-          variant="green"
-          className="bg-card shadow-sm border-border/60"
+          className="bg-card shadow-sm border-border"
         />
         <StatCard
           title="Antigravity"
           value={antigravityAccounts.length}
           icon={Layers}
           description="AI Service Accounts"
-          variant="purple"
-          className="bg-card shadow-sm border-border/60"
+          className="bg-card shadow-sm border-border"
         />
         <StatCard
           title="Kiro IDE"
           value={kiroAccounts.length}
           icon={Layers}
           description="IDE Licenses"
-          variant="orange"
-          className="bg-card shadow-sm border-border/60"
+          className="bg-card shadow-sm border-border"
         />
       </div>
 
       {/* Detailed Analytics */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4 bg-card rounded-xl p-6 shadow-sm border border-border/60 hover:shadow-md transition-all">
-          <h2 className="text-lg font-semibold mb-4 text-foreground">Quota Usage (Antigravity)</h2>
+        <div className="col-span-4 bg-card rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-all">
+          <h2 className="text-lg font-semibold mb-6 text-foreground">Quota Usage (Antigravity)</h2>
           <QuotaCard accounts={antigravityAccounts} />
         </div>
-        <div className="col-span-3 bg-card rounded-xl p-6 shadow-sm border border-border/60 hover:shadow-md transition-all">
-          <h2 className="text-lg font-semibold mb-4 text-foreground">License Types (Kiro)</h2>
+        <div className="col-span-3 bg-card rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-all">
+          <h2 className="text-lg font-semibold mb-6 text-foreground">License Types (Kiro)</h2>
           <SubscriptionCard accounts={kiroAccounts} />
         </div>
       </div>
@@ -95,27 +91,26 @@ export function Dashboard() {
             return (
               <div
                 key={platform.id}
-                className="group relative overflow-hidden rounded-xl border border-border/60 bg-card text-card-foreground shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 hover:border-primary/20 cursor-pointer"
+                className="group relative overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-all hover:shadow-lg hover:border-primary/50 cursor-pointer"
                 onClick={() => navigate(`/accounts?platform=${platform.id}`)}
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-5">
                       <div
-                        className="p-3.5 rounded-2xl transition-all group-hover:scale-110 duration-300 shadow-sm border border-transparent group-hover:border-current/20"
-                        style={{ backgroundColor: `${platform.color}33`, color: platform.color }}
+                        className="p-4 rounded-xl transition-all duration-300 bg-secondary group-hover:bg-primary group-hover:text-primary-foreground text-foreground"
                       >
-                        <Icon className="h-7 w-7 text-current" />
+                        <Icon className="h-6 w-6" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-xl tracking-tight">{t(`platforms.${platform.id}.name`)}</h3>
+                        <h3 className="font-semibold text-xl tracking-tight text-foreground">{t(`platforms.${platform.id}.name`)}</h3>
                         <p className="text-sm text-muted-foreground mt-1">
                           {platformAccounts.length} {t('common.accounts')}
                         </p>
                       </div>
                     </div>
-                    <div className="h-8 w-8 rounded-full bg-muted/50 flex items-center justify-center opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0 group-hover:bg-primary/10">
-                      <ArrowRight className="h-4 w-4 text-primary" />
+                    <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0 group-hover:bg-primary/10">
+                      <ArrowRight className="h-5 w-5 text-primary" />
                     </div>
                   </div>
                 </div>

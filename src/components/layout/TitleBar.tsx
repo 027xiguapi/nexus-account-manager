@@ -1,5 +1,6 @@
 import { X, Minus, Square } from 'lucide-react'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { Button } from '@/components/ui/button'
 
 export function TitleBar() {
   const appWindow = getCurrentWindow()
@@ -10,32 +11,35 @@ export function TitleBar() {
 
   return (
     <div
-      className="h-8 bg-background flex items-center justify-end px-3 select-none border-b border-border/50"
+      className="h-8 bg-background flex items-center justify-end px-3 select-none border-b border-border"
       data-tauri-drag-region
     >
       {/* Window Controls (Windows Style but minimal) */}
-      <div className="flex items-center gap-2">
-        <button
+      <div className="flex items-center gap-1">
+        <Button
           onClick={handleMinimize}
-          className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
-          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-foreground rounded-none"
         >
           <Minus className="w-3.5 h-3.5" />
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleMaximize}
-          className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
-          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-foreground rounded-none"
         >
           <Square className="w-3.5 h-3.5" />
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleClose}
-          className="p-1.5 hover:bg-destructive hover:text-destructive-foreground rounded-md transition-colors text-muted-foreground"
-          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 hover:bg-destructive hover:text-destructive-foreground text-muted-foreground rounded-none"
         >
           <X className="w-3.5 h-3.5" />
-        </button>
+        </Button>
       </div>
     </div>
   )

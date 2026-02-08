@@ -22,9 +22,9 @@ export function SubscriptionCard({ accounts, className }: SubscriptionCardProps)
                     <div key={type} className="flex items-center justify-between group">
                         <span className="text-sm text-foreground/80 font-medium">{type}</span>
                         <div className="flex items-center gap-3">
-                            <div className="h-2.5 w-32 bg-secondary rounded-full overflow-hidden">
+                            <div className="h-2 w-32 bg-secondary rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500 group-hover:brightness-110"
+                                    className="h-full bg-primary rounded-full transition-all duration-500 group-hover:bg-primary/90"
                                     style={{ width: `${(count / accounts.length) * 100}%` }}
                                 />
                             </div>
@@ -33,7 +33,7 @@ export function SubscriptionCard({ accounts, className }: SubscriptionCardProps)
                     </div>
                 ))}
                 {accounts.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-8 text-muted-foreground text-sm opacity-60 border border-dashed border-border/50 rounded-lg bg-muted/20">
+                    <div className="flex flex-col items-center justify-center py-6 text-muted-foreground text-sm opacity-60 border border-dashed border-border rounded-lg bg-muted/20">
                         <p>{t('dashboard.noKiroAccounts')}</p>
                     </div>
                 )}

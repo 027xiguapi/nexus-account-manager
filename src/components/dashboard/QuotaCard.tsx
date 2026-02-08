@@ -28,11 +28,11 @@ export function QuotaCard({ accounts, className }: QuotaCardProps) {
             <div className="space-y-2">
                 <Progress
                     value={avgQuota}
-                    className="h-3 bg-secondary"
+                    className="h-2 bg-secondary"
                     indicatorClassName={cn(
-                        "transition-all duration-500 bg-gradient-to-r",
-                        avgQuota > 90 ? "from-red-500 to-red-600" :
-                            avgQuota > 70 ? "from-yellow-500 to-orange-500" : "from-blue-500 to-cyan-500"
+                        "transition-all duration-500",
+                        avgQuota > 90 ? "bg-destructive" :
+                            avgQuota > 70 ? "bg-yellow-500" : "bg-primary"
                     )}
                 />
                 <p className="text-xs text-muted-foreground flex items-center justify-between">

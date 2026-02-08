@@ -57,20 +57,10 @@ export function Settings() {
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-          {t('settings.title')}
-        </h1>
-        <p className="text-muted-foreground mt-2 text-lg font-light">
-          {t('settings.subtitle')}
-        </p>
-      </div>
-
-      {/* Storage Section */}
-      <Card className="border-white/5 bg-card/40 backdrop-blur-sm shadow-xl">
-        <CardHeader className="border-b border-white/5 pb-4">
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="border-b border-border pb-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500 dark:text-blue-400">
               <Database className="h-5 w-5" />
             </div>
             <CardTitle>{t('settings.storage')}</CardTitle>
@@ -88,7 +78,7 @@ export function Settings() {
                   type="text"
                   value={storagePath}
                   onChange={(e) => setStoragePath(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background/50 px-10 py-2 text-sm shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder="/path/to/accounts.json"
                 />
               </div>
@@ -120,17 +110,17 @@ export function Settings() {
             </p>
           </div>
 
-          <div className="pt-6 border-t border-white/5">
+          <div className="pt-6 border-t border-border">
             <h4 className="text-sm font-medium mb-4 flex items-center gap-2 text-muted-foreground">
               <Database className="h-4 w-4" />
               {t('settings.dataManagement')}
             </h4>
             <div className="flex gap-3">
-              <Button variant="outline" size="sm" className="bg-background/50 hover:bg-background/80">
+              <Button variant="outline" size="sm" className="bg-background hover:bg-muted">
                 <Upload className="mr-2 h-4 w-4" />
                 {t('settings.importLegacy')}
               </Button>
-              <Button variant="outline" size="sm" className="bg-background/50 hover:bg-background/80">
+              <Button variant="outline" size="sm" className="bg-background hover:bg-muted">
                 <Download className="mr-2 h-4 w-4" />
                 {t('settings.exportData')}
               </Button>
@@ -140,10 +130,10 @@ export function Settings() {
       </Card>
 
       {/* Appearance Section */}
-      <Card className="border-white/5 bg-card/40 backdrop-blur-sm shadow-xl">
-        <CardHeader className="border-b border-white/5 pb-4">
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="border-b border-border pb-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 dark:text-purple-400">
               <Palette className="h-5 w-5" />
             </div>
             <CardTitle>{t('settings.appearance')}</CardTitle>
@@ -155,7 +145,7 @@ export function Settings() {
             <div className="grid grid-cols-3 gap-4 max-w-md">
               <Button
                 variant={theme === 'light' ? 'default' : 'outline'}
-                className={cn("h-20 flex flex-col gap-2", theme !== 'light' && "bg-background/50 border-input")}
+                className={cn("h-20 flex flex-col gap-2", theme !== 'light' && "bg-background border-input")}
                 onClick={() => setTheme('light')}
               >
                 <Sun className="h-6 w-6" />
@@ -163,7 +153,7 @@ export function Settings() {
               </Button>
               <Button
                 variant={theme === 'dark' ? 'default' : 'outline'}
-                className={cn("h-20 flex flex-col gap-2", theme !== 'dark' && "bg-background/50 border-input")}
+                className={cn("h-20 flex flex-col gap-2", theme !== 'dark' && "bg-background border-input")}
                 onClick={() => setTheme('dark')}
               >
                 <Moon className="h-6 w-6" />
@@ -171,7 +161,7 @@ export function Settings() {
               </Button>
               <Button
                 variant={theme === 'system' ? 'default' : 'outline'}
-                className={cn("h-20 flex flex-col gap-2", theme !== 'system' && "bg-background/50 border-input")}
+                className={cn("h-20 flex flex-col gap-2", theme !== 'system' && "bg-background border-input")}
                 onClick={() => setTheme('system')}
               >
                 <Laptop className="h-6 w-6" />
@@ -183,10 +173,10 @@ export function Settings() {
       </Card>
 
       {/* About Section */}
-      <Card className="border-white/5 bg-card/40 backdrop-blur-sm shadow-xl">
-        <CardHeader className="border-b border-white/5 pb-4">
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="border-b border-border pb-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+            <div className="p-2 rounded-lg bg-green-500/10 text-green-500 dark:text-green-400">
               <Info className="h-5 w-5" />
             </div>
             <CardTitle>{t('settings.about')}</CardTitle>
@@ -194,15 +184,15 @@ export function Settings() {
         </CardHeader>
         <CardContent className="pt-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="p-4 rounded-lg bg-background/50 border border-white/5">
+            <div className="p-4 rounded-lg bg-background border border-border">
               <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('settings.version')}</span>
               <p className="text-lg font-mono font-medium mt-1">1.0.0</p>
             </div>
-            <div className="p-4 rounded-lg bg-background/50 border border-white/5">
+            <div className="p-4 rounded-lg bg-background border border-border">
               <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('settings.author')}</span>
               <p className="text-lg font-medium mt-1">Adnaan</p>
             </div>
-            <div className="p-4 rounded-lg bg-background/50 border border-white/5">
+            <div className="p-4 rounded-lg bg-background border border-border">
               <span className="text-xs text-muted-foreground uppercase tracking-wider">{t('settings.license')}</span>
               <p className="text-lg font-medium mt-1">MIT</p>
             </div>
