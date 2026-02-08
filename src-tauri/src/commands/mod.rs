@@ -1,0 +1,78 @@
+use crate::core::{Account, Storage};
+use tauri::{AppHandle, State};
+use std::sync::Mutex;
+
+pub struct AppState {
+    pub storage: Mutex<Storage>,
+}
+
+#[tauri::command]
+pub fn get_accounts(app: AppHandle, state: State<AppState>) -> Result<Vec<Account>, String> {
+    let storage = state.storage.lock().unwrap();
+    Ok(storage.accounts.clone())
+}
+
+#[tauri::command]
+pub fn add_account(
+    app: AppHandle,
+    state: State<AppState>,
+    account: Account,
+) -> Result<Account, String> {
+    let mut storage = state.storage.lock().unwrap();
+    storage.accounts.push(account.clone());
+    storage.save(&app)?;
+    Ok(account)
+}
+
+#[tauri::command]
+pub fn update_account(
+    app: AppHandle,
+    state: State<AppState>,
+    id: String,
+    account: Account,
+) -> Result<Account, String> {
+    let mut storage = state.storage.lock().unwrap();
+    
+    if let Some(existing) = storage.accounts.iter_mut().find(|a| a.id == id) {
+        *existing = account.clone();
+        storage.save(&app)?;
+        Ok(account)
+    } else {
+        Err("Account not found".to_string())
+    }
+}
+
+#[tauri::command]
+pub fn delete_account(
+    app: AppHandle,
+    state: State<AppState>,
+    id: String,
+) -> Result<(), String> {
+    let mut storage = state.storage.lock().unwrap();
+    storage.accounts.retain(|a| a.id != id);
+    storage.save(&app)?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn export_accounts(state: State<AppState>) -> Result<String, String> {
+    let storage = state.storage.lock().unwrap();
+    serde_json::to_string_pretty(&storage.accounts)
+        .map_err(|e| format!("Failed to export: {}", e))
+}
+
+#[tauri::command]
+pub fn import_accounts(
+    app: AppHandle,
+    state: State<AppState>,
+    json: String,
+) -> Result<Vec<Account>, String> {
+    let accounts: Vec<Account> = serde_json::from_str(&json)
+        .map_err(|e| format!("Failed to parse import data: {}", e))?;
+    
+    let mut storage = state.storage.lock().unwrap();
+    storage.accounts.extend(accounts.clone());
+    storage.save(&app)?;
+    
+    Ok(accounts)
+}
