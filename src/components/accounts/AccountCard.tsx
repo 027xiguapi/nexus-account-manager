@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import type { AntigravityAccount, KiroAccount, Account } from '@/types/account'
+import type { ClaudeAccount, CodexAccount, GeminiAccount } from '@/types/account'
 import {
     RefreshCw,
     Trash2,
@@ -63,17 +64,26 @@ export const AccountCard = memo(function AccountCard({
 
     // 判断平台
     const isAntigravity = account.platform === 'antigravity'
+    const isKiro = account.platform === 'kiro'
+    const isClaude = account.platform === 'claude'
+    const isCodex = account.platform === 'codex'
+    const isGemini = account.platform === 'gemini'
     const antigravity = isAntigravity ? account as AntigravityAccount : null
-    const kiro = !isAntigravity ? account as KiroAccount : null
+    const kiro = isKiro ? account as KiroAccount : null
+    const claude = isClaude ? account as ClaudeAccount : null
+    const codex = isCodex ? account as CodexAccount : null
+    const gemini = isGemini ? account as GeminiAccount : null
 
     // 获取订阅信息
-    const subscriptionTier = antigravity?.quota?.subscription_tier || kiro?.subscription?.type || 'Free'
+    const subscriptionTier = antigravity?.quota?.subscription_tier || kiro?.subscription?.type || (isClaude || isCodex || isGemini ? 'API' : 'Free')
     const isForbidden = antigravity?.is_forbidden || antigravity?.quota?.is_forbidden
 
     // 获取使用率
     const usagePercent = isAntigravity
         ? (antigravity?.quota?.models?.[0]?.percentage || 0)
-        : ((kiro?.usage?.percentUsed || 0) * 100)
+        : isKiro
+            ? ((kiro?.usage?.percentUsed || 0) * 100)
+            : 0 // Claude/Codex/Gemini 暂不显示使用率
 
     const handleCopyEmail = async () => {
         await navigator.clipboard.writeText(account.email)
@@ -172,37 +182,49 @@ export const AccountCard = memo(function AccountCard({
 
                         {/* Platform Badge */}
                         <Badge variant="outline" className="text-[10px] h-5 px-2 text-muted-foreground border-border bg-muted/30">
-                            {isAntigravity ? 'Antigravity' : (kiro?.idp || 'Kiro')}
+                            {isAntigravity ? 'Antigravity' : isKiro ? (kiro?.idp || 'Kiro') : isClaude ? 'Claude' : isCodex ? 'Codex' : 'Gemini'}
                         </Badge>
                     </div>
 
                     {/* Usage Progress */}
-                    <div className="space-y-2 pt-1">
-                        <div className="flex justify-between items-center text-xs">
-                            <span className="text-muted-foreground font-light">{t('accounts.usage')}</span>
-                            <span className={cn(
-                                "font-mono font-medium",
-                                usagePercent > 80 ? "text-amber-500" : "text-foreground/80"
-                            )}>
-                                {usagePercent.toFixed(0)}%
-                            </span>
-                        </div>
-                        <Progress
-                            value={usagePercent}
-                            className="h-1.5 bg-secondary/50"
-                            indicatorClassName={cn(
-                                "transition-all duration-500",
-                                usagePercent > 90 ? "bg-red-500" :
-                                    usagePercent > 70 ? "bg-amber-500" : "bg-primary"
-                            )}
-                        />
-                        {/* Kiro specific */}
-                        {kiro && (
-                            <div className="flex justify-between text-[10px] text-muted-foreground/70">
-                                <span>{kiro.usage.current} / {kiro.usage.limit}</span>
+                    {!isClaude && !isCodex && !isGemini && (
+                        <div className="space-y-2 pt-1">
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-muted-foreground font-light">{t('accounts.usage')}</span>
+                                <span className={cn(
+                                    "font-mono font-medium",
+                                    usagePercent > 80 ? "text-amber-500" : "text-foreground/80"
+                                )}>
+                                    {usagePercent.toFixed(0)}%
+                                </span>
                             </div>
-                        )}
-                    </div>
+                            <Progress
+                                value={usagePercent}
+                                className="h-1.5 bg-secondary/50"
+                                indicatorClassName={cn(
+                                    "transition-all duration-500",
+                                    usagePercent > 90 ? "bg-red-500" :
+                                        usagePercent > 70 ? "bg-amber-500" : "bg-primary"
+                                )}
+                            />
+                            {/* Kiro specific */}
+                            {kiro && (
+                                <div className="flex justify-between text-[10px] text-muted-foreground/70">
+                                    <span>{kiro.usage.current} / {kiro.usage.limit}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Claude/Codex/Gemini specific - Base URL */}
+                    {(isClaude || isCodex || isGemini) && (
+                        <div className="space-y-1 pt-1">
+                            <div className="text-xs text-muted-foreground font-light">Base URL</div>
+                            <div className="text-xs font-mono text-foreground/80 truncate bg-muted/30 px-2 py-1 rounded">
+                                {claude?.baseUrl || codex?.baseUrl || gemini?.baseUrl}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Actions - Hover Reveal */}
                     <div className="flex items-center justify-between pt-3 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

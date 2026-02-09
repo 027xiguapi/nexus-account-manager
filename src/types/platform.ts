@@ -9,7 +9,7 @@ export type BaseAccount = Account
 // 添加方式类型
 // ============================================================================
 
-export type AddMethodType = 'oauth' | 'token' | 'import' | 'sso' | 'session' | 'builderid' | 'social'
+export type AddMethodType = 'oauth' | 'token' | 'import' | 'sso' | 'session' | 'builderid' | 'social' | 'json'
 
 export interface AddMethodProps {
   platform: string

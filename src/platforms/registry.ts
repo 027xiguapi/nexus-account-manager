@@ -1,11 +1,17 @@
 import { PlatformConfig, PlatformRegistry } from '@/types/platform'
 import { antigravityConfig } from './antigravity'
 import { kiroConfig } from './kiro'
+import { claudeConfig } from './claude'
+import { codexConfig } from './codex'
+import { geminiConfig } from './gemini'
 
 // 所有平台配置
 export const platforms: PlatformConfig[] = [
   antigravityConfig,
   kiroConfig,
+  claudeConfig,
+  codexConfig,
+  geminiConfig,
 ]
 
 // 平台注册表

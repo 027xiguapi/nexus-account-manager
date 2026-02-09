@@ -1,0 +1,7 @@
+{
+  "env": {
+    "ANTHROPIC_API_KEY": "sk-PalOEKexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ANTHROPIC_AUTH_TOKEN": "sk-PalOEKexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ANTHROPIC_BASE_URL": "https://api.anthropic.com"
+  }
+}

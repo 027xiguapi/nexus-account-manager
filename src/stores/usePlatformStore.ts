@@ -55,7 +55,7 @@ const toFrontend = (backend: BackendAccount): Account => {
 
   const common = {
     id,
-    platform: platform as 'antigravity' | 'kiro',
+    platform: platform as 'antigravity' | 'kiro' | 'claude' | 'codex' | 'gemini',
     name: name || undefined,
     email,
     avatar: avatar || undefined,
