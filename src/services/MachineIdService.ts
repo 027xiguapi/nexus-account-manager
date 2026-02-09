@@ -1,3 +1,5 @@
+import { invoke } from '@tauri-apps/api/core'
+
 /**
  * 机器码服务（单例）
  * 系统级别的机器码管理，所有平台共享
@@ -26,7 +28,6 @@ export class MachineIdService {
    * 获取当前系统机器码
    */
   async getMachineId(): Promise<string> {
-    const { invoke } = await import('@tauri-apps/api/core')
     return invoke<string>('get_machine_id')
   }
 
@@ -34,7 +35,6 @@ export class MachineIdService {
    * 设置系统机器码
    */
   async setMachineId(machineId: string): Promise<void> {
-    const { invoke } = await import('@tauri-apps/api/core')
     await invoke('set_machine_id', { machineId })
   }
 
@@ -43,7 +43,6 @@ export class MachineIdService {
    */
   async bindMachineId(accountId: string, machineId: string): Promise<void> {
     this.machineIdMap.set(accountId, machineId)
-    const { invoke } = await import('@tauri-apps/api/core')
     await invoke('bind_machine_id', { accountId, machineId })
   }
 
@@ -52,7 +51,6 @@ export class MachineIdService {
    */
   async unbindMachineId(accountId: string): Promise<void> {
     this.machineIdMap.delete(accountId)
-    const { invoke } = await import('@tauri-apps/api/core')
     await invoke('unbind_machine_id', { accountId })
   }
 
@@ -65,7 +63,6 @@ export class MachineIdService {
     if (cached) return cached
 
     // 从后端获取
-    const { invoke } = await import('@tauri-apps/api/core')
     const machineId = await invoke<string | null>('get_machine_id_for_account', { accountId })
 
     if (machineId) {
@@ -79,7 +76,6 @@ export class MachineIdService {
    * 获取所有账号的机器码绑定
    */
   async getAllBindings(): Promise<Map<string, string>> {
-    const { invoke } = await import('@tauri-apps/api/core')
     const bindings = await invoke<Record<string, string>>('get_all_machine_id_bindings')
     
     this.machineIdMap.clear()
