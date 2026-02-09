@@ -31,6 +31,20 @@
         "kiro": {
             "name": "Kiro IDE",
             "description": "Manage your Kiro IDE accounts and licenses"
+        },
+        "claude": {
+            "name": "Claude",
+            "description": "Manage your Claude API accounts",
+            "editAccount": "编辑 Claude 账号",
+            "addAccount": "添加 Claude 账号"
+        },
+        "codex": {
+            "name": "OpenAI Codex",
+            "description": "Manage your OpenAI Codex API accounts"
+        },
+        "gemini": {
+            "name": "Google Gemini",
+            "description": "Manage your Google Gemini API accounts"
         }
     },
     "common": {

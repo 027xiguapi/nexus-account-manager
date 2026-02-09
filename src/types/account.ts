@@ -1,4 +1,4 @@
-export type PlatformType = 'antigravity' | 'kiro';
+export type PlatformType = 'antigravity' | 'kiro' | 'claude' | 'codex' | 'gemini';
 
 // --- Common Fields ---
 export interface BaseAccount {
@@ -80,5 +80,29 @@ export interface KiroAccount extends BaseAccount {
     usage: KiroUsage;
 }
 
+// --- Claude Specifics ---
+export interface ClaudeAccount extends BaseAccount {
+    platform: 'claude';
+    apiKey: string;
+    authToken?: string;
+    baseUrl: string;
+}
+
+// --- Codex Specifics ---
+export interface CodexAccount extends BaseAccount {
+    platform: 'codex';
+    apiKey: string;
+    organizationId?: string;
+    baseUrl: string;
+}
+
+// --- Gemini Specifics ---
+export interface GeminiAccount extends BaseAccount {
+    platform: 'gemini';
+    apiKey: string;
+    projectId?: string;
+    baseUrl: string;
+}
+
 // --- Union Type ---
-export type Account = AntigravityAccount | KiroAccount;
+export type Account = AntigravityAccount | KiroAccount | ClaudeAccount | CodexAccount | GeminiAccount;
