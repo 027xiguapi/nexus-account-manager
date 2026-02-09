@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next'
 import { invoke } from '@tauri-apps/api/core'
 
 import type { AddMethodProps } from '@/types/platform'
-import type { AntigravityAccount } from '@/types/account'
+import type { AntigravityAccount, AntigravityQuotaData } from '@/types/account'
 import { cn } from '@/lib/utils'
 
 type Status = 'idle' | 'scanning' | 'found' | 'importing' | 'success' | 'error'
@@ -105,12 +105,63 @@ export function ImportMethod({ onSuccess, onClose }: AddMethodProps) {
 
         for (const item of foundTokens) {
             try {
-                const account = await invoke<AntigravityAccount>('antigravity_add_by_token', {
+                // 调用后端命令获取账户基本信息
+                const accountData = await invoke<{
+                    id: string
+                    email: string
+                    name: string | null
+                    refresh_token: string
+                }>('antigravity_add_by_token', {
                     refreshToken: item.token
                 })
+
+                // 刷新token获取access_token
+                const tokenResponse = await invoke<{
+                    access_token: string
+                    expires_in: number
+                    token_type: string
+                }>('antigravity_refresh_token', {
+                    refreshToken: accountData.refresh_token
+                })
+
+                // 获取配额信息
+                let quotaData: AntigravityQuotaData | undefined = undefined
+                try {
+                    quotaData = await invoke<AntigravityQuotaData>('antigravity_get_quota', {
+                        accessToken: tokenResponse.access_token
+                    })
+                } catch (e) {
+                    console.warn('Failed to fetch quota:', e)
+                }
+
+                // 构造完整的 AntigravityAccount 对象
+                const now = Date.now()
+                const expiryTimestamp = now + (tokenResponse.expires_in * 1000)
+                
+                const account: AntigravityAccount = {
+                    id: accountData.id,
+                    platform: 'antigravity',
+                    email: accountData.email,
+                    name: accountData.name || undefined,
+                    isActive: false,
+                    lastUsedAt: now,
+                    createdAt: now,
+                    token: {
+                        access_token: tokenResponse.access_token,
+                        refresh_token: accountData.refresh_token,
+                        expires_in: tokenResponse.expires_in,
+                        expiry_timestamp: expiryTimestamp,
+                        token_type: tokenResponse.token_type
+                    },
+                    quota: quotaData,
+                    is_forbidden: quotaData?.is_forbidden || false
+                }
+
                 onSuccess(account)
                 successCount++
-            } catch { }
+            } catch (e) {
+                console.error('Failed to import token:', e)
+            }
         }
 
         if (successCount > 0) {
@@ -118,7 +169,10 @@ export function ImportMethod({ onSuccess, onClose }: AddMethodProps) {
             setMessage(isEn
                 ? `Imported ${successCount} accounts!`
                 : `成功导入 ${successCount} 个账号！`)
-            setTimeout(onClose, 1500)
+            // Auto-close dialog after 1 second
+            setTimeout(() => {
+                onClose()
+            }, 1000)
         } else {
             setStatus('error')
             setMessage(isEn ? 'Import failed' : '导入失败')

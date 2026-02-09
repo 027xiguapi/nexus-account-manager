@@ -18,21 +18,9 @@ import type { Account } from '@/types/platform'
 export function AddAccountDialog() {
     const [open, setOpen] = useState(false)
     const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
-    const [step, setStep] = useState<'platform' | 'method' | 'form'>('platform')
     const { t } = useTranslation()
     const { addAccount, loadAllAccounts } = usePlatformStore()
     const platforms = getAllPlatforms()
-
-    const handleOpenChange = (newOpen: boolean) => {
-        setOpen(newOpen)
-        if (!newOpen) {
-            // Reset state after transition
-            setTimeout(() => {
-                setStep('platform')
-                setSelectedPlatform(null)
-            }, 300)
-        }
-    }
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
 
     // 获取当前平台配置

@@ -97,11 +97,12 @@ pub async fn fetch_project_id(access_token: &str) -> (Option<String>, Option<Str
 }
 
 pub async fn fetch_quota(access_token: &str, project_id: Option<&str>) -> Result<(QuotaData, Option<String>), String> {
-    let final_project_id = match project_id {
-        Some(p) => p.to_string(),
+    // Fetch project_id and subscription_tier if not provided
+    let (final_project_id, subscription_tier) = match project_id {
+        Some(p) => (p.to_string(), None),
         None => {
-            let (fetched_pid, _) = fetch_project_id(access_token).await;
-            fetched_pid.unwrap_or_else(|| "bamboo-precept-lgxtn".to_string())
+            let (fetched_pid, fetched_tier) = fetch_project_id(access_token).await;
+            (fetched_pid.unwrap_or_else(|| "bamboo-precept-lgxtn".to_string()), fetched_tier)
         }
     };
 
@@ -121,6 +122,7 @@ pub async fn fetch_quota(access_token: &str, project_id: Option<&str>) -> Result
         if response.status().as_u16() == 403 {
             let mut q = QuotaData::new();
             q.is_forbidden = true;
+            q.subscription_tier = subscription_tier;
             return Ok((q, Some(final_project_id)));
         }
         return Err(format!("Quota API error: {}", response.status()));
@@ -145,6 +147,9 @@ pub async fn fetch_quota(access_token: &str, project_id: Option<&str>) -> Result
             }
         }
     }
+    
+    // Set subscription tier
+    quota_data.subscription_tier = subscription_tier;
     
     Ok((quota_data, Some(final_project_id)))
 }

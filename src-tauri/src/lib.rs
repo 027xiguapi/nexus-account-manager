@@ -1,5 +1,6 @@
 mod core;
 mod commands;
+mod utils;
 
 use commands::*;
 use core::Storage;
@@ -77,6 +78,7 @@ pub fn run() {
             import_accounts,
             core::storage::set_storage_path,
             core::storage::get_current_storage_path,
+            core::storage::select_storage_directory,
             import::import_from_db,
             machine::get_machine_id,
             machine::set_machine_id,
@@ -88,9 +90,11 @@ pub fn run() {
             antigravity::antigravity_prepare_oauth_url,
             antigravity::antigravity_complete_oauth,
             antigravity::antigravity_add_by_token,
+            antigravity::antigravity_refresh_token,
+            antigravity::antigravity_get_quota,
             antigravity::antigravity_scan_databases,
             antigravity::select_db_file,
-            antigravity::antigravity_get_quota,
+            antigravity::antigravity_switch_account,
             // Kiro 命令
             kiro::kiro_start_device_auth,
             kiro::kiro_poll_token,

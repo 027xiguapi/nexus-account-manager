@@ -41,6 +41,9 @@
             "core:window:allow-set-background-color",
             "core:window:allow-show",
             "core:window:default",
+            "core:event:allow-listen",
+            "core:event:allow-unlisten",
+            "core:event:allow-emit",
             "opener:default",
             "dialog:default"
           ]

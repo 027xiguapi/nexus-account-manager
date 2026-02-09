@@ -6,6 +6,7 @@ use serde::Serialize;
 use tauri::command;
 use std::path::PathBuf;
 use rusqlite::Connection;
+use base64::{engine::general_purpose, Engine as _};
 
 /// OAuth URL 响应
 #[derive(Serialize)]
@@ -34,6 +35,7 @@ pub struct FoundToken {
 use crate::core::oauth;
 use crate::core::oauth_server;
 use crate::core::quota;
+use crate::utils::paths;
 use tauri::AppHandle; 
 
 // ... keep existing structs ...
@@ -47,22 +49,25 @@ pub async fn antigravity_prepare_oauth_url(app: AppHandle) -> Result<String, Str
 
 /// 完成 OAuth 登录
 #[command]
-pub async fn antigravity_complete_oauth(code: String) -> Result<AntigravityAccountData, String> {
-    // 提交验证码到本地服务器
-    oauth_server::submit_oauth_code(code).await?;
+pub async fn antigravity_complete_oauth(app: AppHandle, code: String) -> Result<AntigravityAccountData, String> {
+    // 如果 code 为空，说明是自动回调，直接完成流程
+    // 如果 code 不为空，说明是手动输入，需要先提交
+    if !code.is_empty() {
+        oauth_server::submit_oauth_code(code).await?;
+    }
     
     // 完成 Token 交换
-    let token_res = oauth_server::complete_oauth_flow(None).await?;
+    let token_res = oauth_server::complete_oauth_flow(Some(app)).await?;
     
     // Get User Info
     let user_info = oauth::get_user_info(&token_res.access_token).await?;
     
     // Create Account Data
     Ok(AntigravityAccountData {
-        id: uuid::Uuid::new_v4().to_string(), // In real app, maybe hash of email
+        id: uuid::Uuid::new_v4().to_string(),
         email: user_info.email.clone(),
         name: user_info.get_display_name(),
-        refresh_token: token_res.refresh_token.unwrap_or_default(), // Handle missing refresh token
+        refresh_token: token_res.refresh_token.unwrap_or_default(),
     })
 }
 
@@ -89,6 +94,25 @@ pub async fn antigravity_add_by_token(refresh_token: String) -> Result<Antigravi
     })
 }
 
+/// 刷新 Access Token
+#[derive(Serialize)]
+pub struct TokenRefreshResponse {
+    pub access_token: String,
+    pub expires_in: i64,
+    pub token_type: String,
+}
+
+#[command]
+pub async fn antigravity_refresh_token(refresh_token: String) -> Result<TokenRefreshResponse, String> {
+    let token_res = oauth::refresh_access_token(&refresh_token).await?;
+    
+    Ok(TokenRefreshResponse {
+        access_token: token_res.access_token,
+        expires_in: token_res.expires_in,
+        token_type: token_res.token_type,
+    })
+}
+
 /// 获取配额信息
 #[command]
 pub async fn antigravity_get_quota(access_token: String) -> Result<quota::QuotaData, String> {
@@ -100,60 +124,143 @@ pub async fn antigravity_get_quota(access_token: String) -> Result<quota::QuotaD
 pub fn antigravity_scan_databases() -> Result<Vec<FoundToken>, String> {
     let mut tokens = Vec::new();
     
-    // 获取用户数据目录
-    let appdata = std::env::var("APPDATA").map_err(|_| "Cannot get APPDATA")?;
+    // 使用通用工具获取所有可能的路径
+    let all_paths = paths::get_ide_database_paths();
     
-    // 扫描路径列表
-    let scan_paths = vec![
-        PathBuf::from(&appdata).join("Code/User/globalStorage/state.vscdb"),
-        PathBuf::from(&appdata).join("Cursor/User/globalStorage/state.vscdb"),
-        PathBuf::from(&appdata).join("VSCodium/User/globalStorage/state.vscdb"),
-    ];
+    println!("Scanning {} possible paths...", all_paths.len());
     
-    for path in scan_paths {
+    for path in all_paths {
         if path.exists() {
-            if let Ok(found) = scan_single_db(&path) {
-                tokens.extend(found);
+            println!("✓ Found database at: {:?}", path);
+            match extract_token_from_db(&path) {
+                Ok(token) => {
+                    println!("  -> Extracted token successfully");
+                    let source = path.parent()
+                        .and_then(|p| p.parent())
+                        .and_then(|p| p.parent())
+                        .and_then(|p| p.file_name())
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("unknown")
+                        .to_string();
+                    tokens.push(FoundToken {
+                        source,
+                        token,
+                    });
+                }
+                Err(e) => {
+                    println!("  -> {}", e);
+                }
             }
         }
     }
     
+    println!("\nTotal tokens found: {}", tokens.len());
     Ok(tokens)
 }
 
-/// 扫描单个数据库
-fn scan_single_db(path: &PathBuf) -> Result<Vec<FoundToken>, String> {
-    let conn = Connection::open(path).map_err(|e| e.to_string())?;
+/// 从数据库中提取 refresh token（使用原项目的方法）
+fn extract_token_from_db(db_path: &PathBuf) -> Result<String, String> {
+    let conn = Connection::open(db_path)
+        .map_err(|e| format!("Failed to open database: {}", e))?;
     
-    let mut stmt = conn.prepare(
-        "SELECT key, value FROM ItemTable WHERE key LIKE '%token%' OR key LIKE '%auth%' OR key LIKE '%refresh%'"
-    ).map_err(|e| e.to_string())?;
+    // 读取特定的 key: jetskiStateSync.agentManagerInitState
+    let current_data: String = conn
+        .query_row(
+            "SELECT value FROM ItemTable WHERE key = ?",
+            ["jetskiStateSync.agentManagerInitState"],
+            |row| row.get(0),
+        )
+        .map_err(|_| "Login state data not found (jetskiStateSync.agentManagerInitState)".to_string())?;
     
-    let source = path.file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("unknown")
-        .to_string();
+    // Base64 解码
+    let blob = general_purpose::STANDARD
+        .decode(&current_data)
+        .map_err(|e| format!("Base64 decoding failed: {}", e))?;
     
-    let token_iter = stmt.query_map([], |row| {
-        let key: String = row.get(0)?;
-        let value: String = row.get(1)?;
-        Ok((key, value))
-    }).map_err(|e| e.to_string())?;
+    // 1. 查找 oauthTokenInfo (Field 6)
+    let oauth_data = find_protobuf_field(&blob, 6)
+        .map_err(|e| format!("Protobuf parsing failed: {}", e))?
+        .ok_or("OAuth data not found (Field 6)")?;
     
-    let mut tokens = Vec::new();
-    for result in token_iter {
-        if let Ok((key, value)) = result {
-            // 只接受以 1// 开头的 Google refresh token
-            if value.starts_with("1//") && value.len() > 10 {
-                tokens.push(FoundToken {
-                    source: format!("{}: {}", source, key),
-                    token: value,
-                });
-            }
+    // 2. 提取 refresh_token (Field 3)
+    let refresh_bytes = find_protobuf_field(&oauth_data, 3)
+        .map_err(|e| format!("OAuth data parsing failed: {}", e))?
+        .ok_or("Refresh Token not found (Field 3)")?;
+    
+    String::from_utf8(refresh_bytes)
+        .map_err(|_| "Refresh Token is not UTF-8 encoded".to_string())
+}
+
+/// 读取 Protobuf Varint
+fn read_varint(data: &[u8], offset: usize) -> Result<(u64, usize), String> {
+    let mut result = 0u64;
+    let mut shift = 0;
+    let mut pos = offset;
+
+    loop {
+        if pos >= data.len() {
+            return Err("incomplete_data".to_string());
         }
+        let byte = data[pos];
+        result |= ((byte & 0x7F) as u64) << shift;
+        pos += 1;
+        if byte & 0x80 == 0 {
+            break;
+        }
+        shift += 7;
     }
-    
-    Ok(tokens)
+
+    Ok((result, pos))
+}
+
+/// 跳过 Protobuf 字段
+fn skip_field(data: &[u8], offset: usize, wire_type: u8) -> Result<usize, String> {
+    match wire_type {
+        0 => {
+            // Varint
+            let (_, new_offset) = read_varint(data, offset)?;
+            Ok(new_offset)
+        }
+        1 => {
+            // 64-bit
+            Ok(offset + 8)
+        }
+        2 => {
+            // Length-delimited
+            let (length, content_offset) = read_varint(data, offset)?;
+            Ok(content_offset + length as usize)
+        }
+        5 => {
+            // 32-bit
+            Ok(offset + 4)
+        }
+        _ => Err(format!("unknown_wire_type: {}", wire_type)),
+    }
+}
+
+/// 查找指定的 Protobuf 字段内容（仅限 Length-Delimited）
+fn find_protobuf_field(data: &[u8], target_field: u32) -> Result<Option<Vec<u8>>, String> {
+    let mut offset = 0;
+
+    while offset < data.len() {
+        let (tag, new_offset) = match read_varint(data, offset) {
+            Ok(v) => v,
+            Err(_) => break, // 数据不完整，停止
+        };
+
+        let wire_type = (tag & 7) as u8;
+        let field_num = (tag >> 3) as u32;
+
+        if field_num == target_field && wire_type == 2 {
+            let (length, content_offset) = read_varint(data, new_offset)?;
+            return Ok(Some(data[content_offset..content_offset + length as usize].to_vec()));
+        }
+
+        // 跳过字段
+        offset = skip_field(data, new_offset, wire_type)?;
+    }
+
+    Ok(None)
 }
 
 /// 选择数据库文件
@@ -170,4 +277,71 @@ pub async fn select_db_file(app: AppHandle) -> Result<Option<String>, String> {
         .blocking_pick_file();
         
     Ok(result.map(|path| path.to_string()))
+}
+
+/// 切换账号（完整实现）
+/// 
+/// 包含以下步骤：
+/// 1. 验证账号存在
+/// 2. 刷新 Token 确保有效
+/// 3. 关闭 Antigravity IDE 进程
+/// 4. 注入 Token 到数据库
+/// 5. 重启 Antigravity IDE
+#[command]
+pub async fn antigravity_switch_account(
+    account_id: String,
+    refresh_token: String,
+    email: String,
+) -> Result<TokenRefreshResponse, String> {
+    println!("[Switch] Starting account switch: {} ({})", email, account_id);
+    
+    // 1. 刷新 Token 确保有效
+    let token_res = oauth::refresh_access_token(&refresh_token).await?;
+    println!("[Switch] Token refreshed successfully");
+    
+    // 2. 关闭 Antigravity IDE 进程
+    if crate::utils::process::is_antigravity_running() {
+        println!("[Switch] Closing Antigravity IDE...");
+        crate::utils::process::close_antigravity(20)?;
+        println!("[Switch] Antigravity IDE closed");
+    }
+    
+    // 3. 注入 Token 到数据库
+    let db_path = crate::utils::db_inject::get_db_path()?;
+    println!("[Switch] Database path: {}", db_path.display());
+    
+    // 备份数据库
+    let backup_path = db_path.with_extension("vscdb.backup");
+    if let Err(e) = std::fs::copy(&db_path, &backup_path) {
+        println!("[Switch] Warning: Failed to backup database: {}", e);
+    } else {
+        println!("[Switch] Database backed up to: {}", backup_path.display());
+    }
+    
+    // 计算过期时间戳（毫秒）
+    let expiry_timestamp = chrono::Utc::now().timestamp_millis() + (token_res.expires_in * 1000);
+    
+    // 注入 Token
+    crate::utils::db_inject::inject_token(
+        &db_path,
+        &token_res.access_token,
+        &refresh_token,
+        expiry_timestamp,
+        &email,
+    )?;
+    println!("[Switch] Token injected to database");
+    
+    // 4. 重启 Antigravity IDE
+    println!("[Switch] Starting Antigravity IDE...");
+    crate::utils::process::start_antigravity()?;
+    println!("[Switch] Antigravity IDE started");
+    
+    println!("[Switch] Account switch completed successfully");
+    
+    // 返回新的 Token 信息，前端会更新账号状态
+    Ok(TokenRefreshResponse {
+        access_token: token_res.access_token,
+        expires_in: token_res.expires_in,
+        token_type: token_res.token_type,
+    })
 }

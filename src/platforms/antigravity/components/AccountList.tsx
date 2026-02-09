@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { AddAccountDialog } from '@/components/dialogs/AddAccountDialog'
+import { AddAccountDialog } from './AddAccountDialog'
 import { ExportDialog } from '@/components/dialogs/ExportDialog'
-import { AccountCard } from '@/components/accounts/AccountCard'
+import { AntigravityAccountCard } from './AntigravityAccountCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { usePlatformStore } from '@/stores/usePlatformStore'
@@ -63,7 +63,7 @@ export function AntigravityAccountList() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {antigravityAccounts.map((account) => (
-            <AccountCard
+            <AntigravityAccountCard
               key={account.id}
               account={account}
               onExport={() => setExportOpen(true)}

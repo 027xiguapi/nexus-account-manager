@@ -11,7 +11,7 @@ import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { invoke } from '@tauri-apps/api/core'
 import type { AddMethodProps } from '@/types/platform'
-import type { AntigravityAccount } from '@/types/account'
+import type { AntigravityAccount, AntigravityQuotaData } from '@/types/account'
 import { cn } from '@/lib/utils'
 
 type Status = 'idle' | 'processing' | 'success' | 'error'
@@ -77,9 +77,58 @@ export function TokenMethod({ onSuccess, onError, onClose }: AddMethodProps) {
             setProgress({ current: i + 1, total: tokens.length })
 
             try {
-                const account = await invoke<AntigravityAccount>('antigravity_add_by_token', {
+                // 调用后端命令获取账户基本信息
+                const accountData = await invoke<{
+                    id: string
+                    email: string
+                    name: string | null
+                    refresh_token: string
+                }>('antigravity_add_by_token', {
                     refreshToken: token
                 })
+
+                // 刷新token获取access_token
+                const tokenResponse = await invoke<{
+                    access_token: string
+                    expires_in: number
+                    token_type: string
+                }>('antigravity_refresh_token', {
+                    refreshToken: accountData.refresh_token
+                })
+
+                // 获取配额信息
+                let quotaData: AntigravityQuotaData | undefined = undefined
+                try {
+                    quotaData = await invoke<AntigravityQuotaData>('antigravity_get_quota', {
+                        accessToken: tokenResponse.access_token
+                    })
+                } catch (e) {
+                    console.warn('Failed to fetch quota:', e)
+                }
+
+                // 构造完整的 AntigravityAccount 对象
+                const now = Date.now()
+                const expiryTimestamp = now + (tokenResponse.expires_in * 1000)
+                
+                const account: AntigravityAccount = {
+                    id: accountData.id,
+                    platform: 'antigravity',
+                    email: accountData.email,
+                    name: accountData.name || undefined,
+                    isActive: false,
+                    lastUsedAt: now,
+                    createdAt: now,
+                    token: {
+                        access_token: tokenResponse.access_token,
+                        refresh_token: accountData.refresh_token,
+                        expires_in: tokenResponse.expires_in,
+                        expiry_timestamp: expiryTimestamp,
+                        token_type: tokenResponse.token_type
+                    },
+                    quota: quotaData,
+                    is_forbidden: quotaData?.is_forbidden || false
+                }
+
                 onSuccess(account)
                 successCount++
             } catch (e: any) {
@@ -92,16 +141,25 @@ export function TokenMethod({ onSuccess, onError, onClose }: AddMethodProps) {
             setMessage(isEn
                 ? `Successfully added ${successCount} accounts!`
                 : `成功添加 ${successCount} 个账号！`)
-            setTimeout(onClose, 1500)
+            // Auto-close dialog after 1 second
+            setTimeout(() => {
+                onClose()
+            }, 1000)
         } else if (successCount > 0) {
             setStatus('success')
             setMessage(isEn
                 ? `Added ${successCount}/${tokens.length} accounts`
                 : `添加了 ${successCount}/${tokens.length} 个账号`)
+            // Auto-close dialog after 1.5 seconds for partial success
+            setTimeout(() => {
+                onClose()
+            }, 1500)
         } else {
             setStatus('error')
             setMessage(errors[0] || (isEn ? 'All tokens failed' : '所有 Token 都失败了'))
-            onError(errors.join('\n'))
+            if (onError) {
+                onError(errors.join('\n'))
+            }
         }
     }
 

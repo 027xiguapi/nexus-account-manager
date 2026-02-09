@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AddAccountDialog } from '@/components/dialogs/AddAccountDialog'
+import { AddAccountDialog } from './AddAccountDialog'
 import { ExportDialog } from '@/components/dialogs/ExportDialog'
 import { AccountCard } from '@/components/accounts/AccountCard'
 import { Card, CardContent } from '@/components/ui/card'

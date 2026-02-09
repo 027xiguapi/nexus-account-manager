@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use std::fs;
 use std::path::PathBuf;
-use tauri::{AppHandle, Manager}; // ✅ 添加 Manager
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
@@ -37,6 +37,7 @@ impl Storage {
         let path = get_storage_path(app)?;
         
         if !path.exists() {
+            println!("Storage file not found at {:?}, creating new storage", path);
             return Ok(Self::new());
         }
 
@@ -46,6 +47,7 @@ impl Storage {
         let storage: Storage = serde_json::from_str(&content)
             .map_err(|e| format!("Failed to parse storage: {}", e))?;
         
+        println!("Loaded {} accounts from {:?}", storage.accounts.len(), path);
         Ok(storage)
     }
 
@@ -64,6 +66,7 @@ impl Storage {
         fs::write(&path, content)
             .map_err(|e| format!("Failed to write storage: {}", e))?;
         
+        println!("Saved {} accounts to {:?}", self.accounts.len(), path);
         Ok(())
     }
 }
@@ -71,6 +74,68 @@ impl Storage {
 // Global configuration state for custom path
 pub struct StorageConfig {
     pub custom_path: std::sync::Mutex<Option<PathBuf>>,
+}
+
+/// 获取配置文件路径
+fn get_config_path(app: &AppHandle) -> Result<PathBuf, String> {
+    let app_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?;
+    
+    Ok(app_dir.join("config.json"))
+}
+
+/// 从配置文件加载自定义路径
+fn load_custom_path_from_config(app: &AppHandle) -> Option<PathBuf> {
+    let config_path = get_config_path(app).ok()?;
+    
+    if !config_path.exists() {
+        return None;
+    }
+    
+    let content = fs::read_to_string(&config_path).ok()?;
+    let config: serde_json::Value = serde_json::from_str(&content).ok()?;
+    
+    config.get("storage_path")
+        .and_then(|v| v.as_str())
+        .map(PathBuf::from)
+}
+
+/// 保存自定义路径到配置文件
+fn save_custom_path_to_config(app: &AppHandle, path: Option<&PathBuf>) -> Result<(), String> {
+    let config_path = get_config_path(app)?;
+    
+    // Ensure directory exists
+    if let Some(parent) = config_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create config directory: {}", e))?;
+    }
+    
+    let mut config = if config_path.exists() {
+        let content = fs::read_to_string(&config_path)
+            .map_err(|e| format!("Failed to read config: {}", e))?;
+        serde_json::from_str(&content).unwrap_or(serde_json::json!({}))
+    } else {
+        serde_json::json!({})
+    };
+    
+    if let Some(path) = path {
+        config["storage_path"] = serde_json::json!(path.to_string_lossy().to_string());
+    } else {
+        // Remove storage_path key if path is None
+        if let Some(obj) = config.as_object_mut() {
+            obj.remove("storage_path");
+        }
+    }
+    
+    let content = serde_json::to_string_pretty(&config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    
+    fs::write(&config_path, content)
+        .map_err(|e| format!("Failed to write config: {}", e))?;
+    
+    Ok(())
 }
 
 fn get_storage_path(app: &AppHandle) -> Result<PathBuf, String> {
@@ -81,6 +146,17 @@ fn get_storage_path(app: &AppHandle) -> Result<PathBuf, String> {
                 return Ok(path.clone());
             }
         }
+    }
+    
+    // Try to load from config file
+    if let Some(path) = load_custom_path_from_config(app) {
+        // Update state with loaded path
+        if let Some(state) = app.try_state::<StorageConfig>() {
+            if let Ok(mut custom_path) = state.custom_path.lock() {
+                *custom_path = Some(path.clone());
+            }
+        }
+        return Ok(path);
     }
 
     // Default path
@@ -93,9 +169,44 @@ fn get_storage_path(app: &AppHandle) -> Result<PathBuf, String> {
 }
 
 #[tauri::command]
-pub fn set_storage_path(path: String, state: tauri::State<'_, StorageConfig>) -> Result<(), String> {
-    let mut custom_path = state.custom_path.lock().map_err(|e| e.to_string())?;
-    *custom_path = Some(PathBuf::from(path));
+pub fn set_storage_path(
+    app: AppHandle,
+    path: String,
+    state: tauri::State<'_, StorageConfig>
+) -> Result<(), String> {
+    let path_buf = if path.is_empty() {
+        // Empty path means reset to default
+        None
+    } else {
+        let pb = PathBuf::from(&path);
+        
+        // Validate path
+        if let Some(parent) = pb.parent() {
+            if !parent.exists() {
+                fs::create_dir_all(parent)
+                    .map_err(|e| format!("Failed to create directory: {}", e))?;
+            }
+        }
+        
+        Some(pb)
+    };
+    
+    // Save to config file first
+    save_custom_path_to_config(&app, path_buf.as_ref())?;
+    
+    // Update state (释放锁在这个作用域结束时)
+    {
+        let mut custom_path = state.custom_path.lock().map_err(|e| e.to_string())?;
+        *custom_path = path_buf.clone();
+    } // 锁在这里被释放
+    
+    // Save current storage to new location (现在可以安全调用 save，因为锁已释放)
+    if let Some(app_state) = app.try_state::<crate::commands::AppState>() {
+        let storage = app_state.storage.lock().map_err(|e| e.to_string())?;
+        storage.save(&app)?;
+    }
+    
+    println!("Storage path updated to: {:?}", path_buf);
     Ok(())
 }
 
@@ -103,4 +214,22 @@ pub fn set_storage_path(path: String, state: tauri::State<'_, StorageConfig>) ->
 pub fn get_current_storage_path(app: AppHandle) -> Result<String, String> {
     let path = get_storage_path(&app)?;
     Ok(path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub async fn select_storage_directory(app: AppHandle) -> Result<Option<String>, String> {
+    use tauri_plugin_dialog::DialogExt;
+    
+    let result = app.dialog().file()
+        .set_title("Select Storage Directory")
+        .blocking_pick_folder();
+    
+    if let Some(folder_path) = result {
+        // FilePath 需要转换为 PathBuf
+        let folder_path_buf = PathBuf::from(folder_path.as_path().ok_or("Invalid path")?);
+        let storage_path = folder_path_buf.join("accounts.json");
+        Ok(Some(storage_path.to_string_lossy().to_string()))
+    } else {
+        Ok(None)
+    }
 }

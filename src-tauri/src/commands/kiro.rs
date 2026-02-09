@@ -233,7 +233,7 @@ pub async fn kiro_social_login(app: AppHandle, provider: String) -> Result<KiroA
 
 /// 切换 Kiro 账号 (存根)
 #[command]
-pub async fn switch_kiro_account(account_id: String, session_token: Option<String>, machine_id: Option<String>) -> Result<(), String> {
+pub async fn switch_kiro_account(account_id: String, _session_token: Option<String>, machine_id: Option<String>) -> Result<(), String> {
     println!("Switching Kiro account to {}, machine: {:?}", account_id, machine_id);
     // TODO: Implement actual IDE config switching
     Ok(())

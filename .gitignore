@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+/Antigravity-Manager-main
+/Kiro-account-manager
+/config

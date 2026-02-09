@@ -4,20 +4,21 @@
  * 通过 Google OAuth 授权添加账号
  */
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ExternalLink, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { listen } from '@tauri-apps/api/event'
 // @ts-ignore
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { invoke } from '@tauri-apps/api/core'
 import type { AddMethodProps } from '@/types/platform'
-import type { AntigravityAccount } from '@/types/account'
+import type { AntigravityAccount, AntigravityQuotaData } from '@/types/account'
 import { cn } from '@/lib/utils'
 
-type Status = 'idle' | 'waiting' | 'success' | 'error'
+type Status = 'idle' | 'waiting' | 'processing' | 'success' | 'error'
 
 export function OAuthMethod({ onSuccess, onError, onClose }: AddMethodProps) {
     const { i18n } = useTranslation()
@@ -26,7 +27,130 @@ export function OAuthMethod({ onSuccess, onError, onClose }: AddMethodProps) {
     const [status, setStatus] = useState<Status>('idle')
     const [message, setMessage] = useState('')
     const [authCode, setAuthCode] = useState('')
-    const [isProcessing, setIsProcessing] = useState(false)
+    const [oauthUrl, setOauthUrl] = useState('')
+    
+    // 使用 ref 来避免闭包问题
+    const statusRef = useRef(status)
+    const oauthUrlRef = useRef(oauthUrl)
+    
+    useEffect(() => {
+        statusRef.current = status
+    }, [status])
+    
+    useEffect(() => {
+        oauthUrlRef.current = oauthUrl
+    }, [oauthUrl])
+
+    // 自动完成 OAuth（后端已接收到回调）
+    const autoCompleteOAuth = useCallback(async () => {
+        console.log('[OAuth] Auto-completing OAuth flow...')
+        setStatus('processing')
+        setMessage(isEn ? 'Processing authorization...' : '正在处理授权...')
+
+        try {
+            // 调用后端完成 OAuth（不需要 code，后端已经处理了）
+            const accountData = await invoke<{
+                id: string
+                email: string
+                name: string | null
+                refresh_token: string
+            }>('antigravity_complete_oauth', { code: '' })
+
+            console.log('[OAuth] Account data received:', accountData.email)
+
+            // 刷新 token 获取 access_token
+            const tokenResponse = await invoke<{
+                access_token: string
+                expires_in: number
+                token_type: string
+            }>('antigravity_refresh_token', {
+                refreshToken: accountData.refresh_token
+            })
+
+            console.log('[OAuth] Token refreshed')
+
+            // 获取配额信息
+            let quotaData: AntigravityQuotaData | undefined = undefined
+            try {
+                quotaData = await invoke<AntigravityQuotaData>('antigravity_get_quota', {
+                    accessToken: tokenResponse.access_token
+                })
+                console.log('[OAuth] Quota data fetched')
+            } catch (e) {
+                console.warn('Failed to fetch quota:', e)
+            }
+
+            // 构造完整的 AntigravityAccount 对象
+            const now = Date.now()
+            const expiryTimestamp = now + (tokenResponse.expires_in * 1000)
+            
+            const account: AntigravityAccount = {
+                id: accountData.id,
+                platform: 'antigravity',
+                email: accountData.email,
+                name: accountData.name || undefined,
+                isActive: false,
+                lastUsedAt: now,
+                createdAt: now,
+                token: {
+                    access_token: tokenResponse.access_token,
+                    refresh_token: accountData.refresh_token,
+                    expires_in: tokenResponse.expires_in,
+                    expiry_timestamp: expiryTimestamp,
+                    token_type: tokenResponse.token_type
+                },
+                quota: quotaData,
+                is_forbidden: quotaData?.is_forbidden || false
+            }
+
+            console.log('[OAuth] Account object constructed, adding to store...')
+            setStatus('success')
+            setMessage(isEn ? 'Account added successfully!' : '账号添加成功！')
+
+            setTimeout(() => {
+                onSuccess(account)
+                onClose()
+            }, 1000)
+        } catch (e: any) {
+            console.error('[OAuth] Auto-complete failed:', e)
+            setStatus('error')
+            setMessage(e.message || (isEn ? 'OAuth failed' : 'OAuth 失败'))
+            if (onError) {
+                onError(e.message)
+            }
+        }
+    }, [isEn, onSuccess, onError, onClose])
+
+    // 监听 OAuth 回调事件
+    useEffect(() => {
+        let unlisten: (() => void) | undefined
+
+        const setupListener = async () => {
+            unlisten = await listen('oauth-callback-received', async () => {
+                console.log('[OAuth] Event received, status:', statusRef.current)
+                
+                // 只有在等待状态时才自动完成
+                if (statusRef.current !== 'waiting') {
+                    console.log('[OAuth] Ignoring event, not in waiting state')
+                    return
+                }
+
+                console.log('[OAuth] Starting auto-complete...')
+                await autoCompleteOAuth()
+            })
+            
+            console.log('[OAuth] Event listener registered')
+        }
+
+        setupListener()
+
+        return () => {
+            if (unlisten) {
+                unlisten()
+                console.log('[OAuth] Event listener unregistered')
+            }
+        }
+    }, [autoCompleteOAuth])
 
     // 启动 OAuth 流程
     const handleStartOAuth = async () => {
@@ -36,39 +160,96 @@ export function OAuthMethod({ onSuccess, onError, onClose }: AddMethodProps) {
 
             // 调用后端生成 OAuth URL
             const url = await invoke<string>('antigravity_prepare_oauth_url')
+            setOauthUrl(url)
+            
+            console.log('[OAuth] OAuth URL generated:', url)
 
             // 打开浏览器
             try {
                 // @ts-ignore
                 await openUrl(url)
+                setMessage(isEn
+                    ? 'Please complete authorization in browser. The account will be added automatically.'
+                    : '请在浏览器中完成授权，账号将自动添加。')
+                console.log('[OAuth] Browser opened, waiting for callback...')
             } catch (e) {
                 console.error("Failed to open URL via plugin, falling back to window.open", e);
                 window.open(url, '_blank')
+                setMessage(isEn
+                    ? 'Please complete authorization in browser. The account will be added automatically.'
+                    : '请在浏览器中完成授权，账号将自动添加。')
             }
-
-            setMessage(isEn
-                ? 'Please complete authorization in browser, then paste the code below'
-                : '请在浏览器中完成授权，然后将授权码粘贴到下方')
         } catch (e: any) {
+            console.error('[OAuth] Failed to start OAuth:', e)
             setStatus('error')
             setMessage(e.message || (isEn ? 'Failed to start OAuth' : 'OAuth 启动失败'))
-            onError(e.message)
+            if (onError) {
+                onError(e.message)
+            }
         }
     }
 
-    // 完成 OAuth 流程
-    const handleCompleteOAuth = async () => {
+    // 手动完成 OAuth 流程（用户手动输入授权码）
+    const handleManualComplete = async () => {
         if (!authCode.trim()) {
             setMessage(isEn ? 'Please enter authorization code' : '请输入授权码')
             return
         }
 
-        setIsProcessing(true)
+        setStatus('processing')
+        setMessage(isEn ? 'Processing authorization...' : '正在处理授权...')
+
         try {
-            // 调用后端完成 OAuth
-            const account = await invoke<AntigravityAccount>('antigravity_complete_oauth', {
+            const accountData = await invoke<{
+                id: string
+                email: string
+                name: string | null
+                refresh_token: string
+            }>('antigravity_complete_oauth', {
                 code: authCode.trim()
             })
+
+            // 刷新 token 获取 access_token
+            const tokenResponse = await invoke<{
+                access_token: string
+                expires_in: number
+                token_type: string
+            }>('antigravity_refresh_token', {
+                refreshToken: accountData.refresh_token
+            })
+
+            // 获取配额信息
+            let quotaData: AntigravityQuotaData | undefined = undefined
+            try {
+                quotaData = await invoke<AntigravityQuotaData>('antigravity_get_quota', {
+                    accessToken: tokenResponse.access_token
+                })
+            } catch (e) {
+                console.warn('Failed to fetch quota:', e)
+            }
+
+            // 构造完整的 AntigravityAccount 对象
+            const now = Date.now()
+            const expiryTimestamp = now + (tokenResponse.expires_in * 1000)
+            
+            const account: AntigravityAccount = {
+                id: accountData.id,
+                platform: 'antigravity',
+                email: accountData.email,
+                name: accountData.name || undefined,
+                isActive: false,
+                lastUsedAt: now,
+                createdAt: now,
+                token: {
+                    access_token: tokenResponse.access_token,
+                    refresh_token: accountData.refresh_token,
+                    expires_in: tokenResponse.expires_in,
+                    expiry_timestamp: expiryTimestamp,
+                    token_type: tokenResponse.token_type
+                },
+                quota: quotaData,
+                is_forbidden: quotaData?.is_forbidden || false
+            }
 
             setStatus('success')
             setMessage(isEn ? 'Account added successfully!' : '账号添加成功！')
@@ -80,9 +261,9 @@ export function OAuthMethod({ onSuccess, onError, onClose }: AddMethodProps) {
         } catch (e: any) {
             setStatus('error')
             setMessage(e.message || (isEn ? 'OAuth failed' : 'OAuth 失败'))
-            onError(e.message)
-        } finally {
-            setIsProcessing(false)
+            if (onError) {
+                onError(e.message)
+            }
         }
     }
 
@@ -93,17 +274,22 @@ export function OAuthMethod({ onSuccess, onError, onClose }: AddMethodProps) {
                 variant="outline"
                 className="w-full py-6 gap-2"
                 onClick={handleStartOAuth}
-                disabled={status === 'waiting' || isProcessing}
+                disabled={status === 'waiting' || status === 'processing'}
             >
                 <ExternalLink className="h-4 w-4" />
                 {isEn ? 'Open Google Authorization' : '打开 Google 授权页面'}
             </Button>
 
-            {/* Step 2: Enter code */}
+            {/* Step 2: Manual code input (optional fallback) */}
             {status === 'waiting' && (
                 <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="text-xs text-muted-foreground text-center">
+                        {isEn 
+                            ? 'If auto-completion fails, you can manually paste the authorization code below:'
+                            : '如果自动完成失败，您可以手动粘贴授权码：'}
+                    </div>
                     <div className="grid gap-2">
-                        <Label>{isEn ? 'Authorization Code' : '授权码'}</Label>
+                        <Label>{isEn ? 'Authorization Code (Optional)' : '授权码（可选）'}</Label>
                         <Input
                             placeholder={isEn ? 'Paste code here...' : '粘贴授权码...'}
                             value={authCode}
@@ -113,11 +299,10 @@ export function OAuthMethod({ onSuccess, onError, onClose }: AddMethodProps) {
                     </div>
                     <Button
                         className="w-full"
-                        onClick={handleCompleteOAuth}
-                        disabled={isProcessing || !authCode.trim()}
+                        onClick={handleManualComplete}
+                        disabled={!authCode.trim()}
                     >
-                        {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isEn ? 'Complete Authorization' : '完成授权'}
+                        {isEn ? 'Complete Manually' : '手动完成'}
                     </Button>
                 </div>
             )}
@@ -128,11 +313,11 @@ export function OAuthMethod({ onSuccess, onError, onClose }: AddMethodProps) {
                     "flex items-center gap-2 p-3 rounded-lg text-sm",
                     status === 'success' && "bg-green-500/10 text-green-600",
                     status === 'error' && "bg-red-500/10 text-red-600",
-                    status === 'waiting' && "bg-blue-500/10 text-blue-600"
+                    (status === 'waiting' || status === 'processing') && "bg-blue-500/10 text-blue-600"
                 )}>
                     {status === 'success' && <CheckCircle2 className="h-4 w-4 shrink-0" />}
                     {status === 'error' && <AlertCircle className="h-4 w-4 shrink-0" />}
-                    {status === 'waiting' && <Loader2 className="h-4 w-4 shrink-0 animate-spin" />}
+                    {(status === 'waiting' || status === 'processing') && <Loader2 className="h-4 w-4 shrink-0 animate-spin" />}
                     <span>{message}</span>
                 </div>
             )}

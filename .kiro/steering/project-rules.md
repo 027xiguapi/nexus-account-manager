@@ -96,10 +96,6 @@ nexus-account-manager/
 │       │   ├── import.rs
 │       │   └── mod.rs
 │       │
-│       ├── utils/               # 通用工具模块
-│       │   ├── paths.rs        # 路径工具
-│       │   └── mod.rs
-│       │
 │       ├── lib.rs               # 库入口
 │       └── main.rs              # 应用入口
 │
@@ -152,7 +148,6 @@ nexus-account-manager/
 - 通过 **Zustand store** 管理全局状态
 - 使用 **i18next** 处理所有用户可见文本
 - 新增平台必须在 `src/platforms/registry.ts` 中注册
-- **公共工具必须封装**：跨平台、跨模块使用的功能应放在 `src/lib/` (前端) 或 `src-tauri/src/utils/` (后端)
 
 #### ❌ 禁止操作
 - 引入 **新的 npm 依赖**（除非明确批准）
@@ -161,7 +156,6 @@ nexus-account-manager/
 - 擅自抽象或创建 **新的设计模式**
 - 跨目录 **复制粘贴代码**
 - 修改 **核心架构**（如插件系统、状态管理）
-- **重复实现**：相同功能在多处重复实现，应提取为公共工具
 
 ### 2.3 平台开发规则
 
@@ -197,126 +191,6 @@ src/platforms/[platform-name]/
 2. 在 `src-tauri/src/commands/mod.rs` 中导出命令
 3. 在 `src-tauri/src/lib.rs` 中注册命令
 4. 前端通过 `@tauri-apps/api` 调用
-
-### 2.5 工具模块规则
-
-**前端工具** (`src/lib/`):
-- 通用工具函数放在 `src/lib/utils.ts`
-- 复杂工具可创建独立文件（如 `src/lib/validators.ts`）
-
-**后端工具** (`src-tauri/src/utils/`):
-- 按功能分类创建模块（如 `paths.rs`, `crypto.rs`）
-- 在 `src-tauri/src/utils/mod.rs` 中导出
-- 示例：路径工具 `utils::paths::get_ide_database_paths()`
-
-### 2.6 公共服务使用规则
-
-#### 机器码服务 (MachineIdService)
-
-**位置**: `src/services/MachineIdService.ts`
-
-机器码（设备指纹）用于账号隔离，所有平台共享此服务。
-
-**使用方式**:
-```typescript
-import { MachineIdService } from '@/services/MachineIdService'
-
-// 在平台服务的切换账号方法中使用
-static async switchAccount(accountId: string) {
-  const machineService = MachineIdService.getInstance()
-  
-  // 检查是否已绑定机器码
-  let machineId = await machineService.getMachineIdForAccount(accountId)
-  
-  // 如果没有，生成新的并绑定
-  if (!machineId) {
-    machineId = await machineService.generateMachineId()
-    await machineService.bindMachineId(accountId, machineId)
-  }
-  
-  // 使用 machineId 进行后续操作...
-}
-```
-
-**主要方法**:
-- `generateMachineId()`: 生成随机机器码
-- `getMachineIdForAccount(accountId)`: 获取账号绑定的机器码
-- `bindMachineId(accountId, machineId)`: 绑定账号到机器码
-- `unbindMachineId(accountId)`: 解绑账号的机器码
-
-**最佳实践**:
-- ✅ 每个账号绑定独立的机器码
-- ✅ 在首次切换账号时懒加载生成
-- ✅ 删除账号时清理绑定关系
-- ❌ 不要在添加账号时立即绑定
-- ❌ 不要多个账号共享机器码
-
-#### 存储服务 (StorageService)
-
-**位置**: `src/services/StorageService.ts`
-
-统一的数据持久化服务，管理账号数据存储路径。
-
-**使用方式**:
-```typescript
-import { StorageService } from '@/services/StorageService'
-
-// 获取当前存储路径
-const path = await StorageService.getCurrentPath()
-
-// 设置自定义存储路径
-await StorageService.setCustomPath('/path/to/storage')
-
-// 选择存储目录（打开文件选择器）
-const newPath = await StorageService.selectDirectory()
-```
-
-#### 确认对话框 (ConfirmDialog)
-
-**位置**: `src/components/dialogs/ConfirmDialog.tsx`
-
-替代原生 `confirm()` 的自定义确认对话框。
-
-**使用方式**:
-```typescript
-import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog'
-
-function MyComponent() {
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  
-  const handleDelete = async () => {
-    // 确认后执行的操作
-    await deleteAccount(accountId)
-  }
-  
-  return (
-    <>
-      <Button onClick={() => setConfirmOpen(true)}>删除</Button>
-      
-      <ConfirmDialog
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title="删除账号"
-        description="确定要删除此账号吗？此操作不可撤销。"
-        confirmText="删除"
-        cancelText="取消"
-        variant="destructive"
-        onConfirm={handleDelete}
-      />
-    </>
-  )
-}
-```
-
-**Props**:
-- `open`: 对话框是否打开
-- `onOpenChange`: 状态变化回调
-- `title`: 标题
-- `description`: 描述文本
-- `confirmText`: 确认按钮文本（可选）
-- `cancelText`: 取消按钮文本（可选）
-- `variant`: 按钮样式，`"default"` 或 `"destructive"`
-- `onConfirm`: 确认回调（支持异步）
 
 ---
 

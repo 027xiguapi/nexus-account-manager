@@ -2,9 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/hooks/useTheme'
 import { useState, useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { StorageService } from '@/services/StorageService'
 import {
   FolderOpen,
   Save,
@@ -16,7 +16,8 @@ import {
   Sun,
   Laptop,
   Info,
-  CheckCircle2
+  CheckCircle2,
+  RotateCcw
 } from 'lucide-react'
 
 export function Settings() {
@@ -25,6 +26,7 @@ export function Settings() {
   const [storagePath, setStoragePath] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const storageService = StorageService.getInstance()
 
   useEffect(() => {
     loadStoragePath()
@@ -32,10 +34,21 @@ export function Settings() {
 
   const loadStoragePath = async () => {
     try {
-      const path = await invoke<string>('get_current_storage_path')
+      const path = await storageService.getCurrentPath()
       setStoragePath(path)
     } catch (error) {
       console.error('Failed to load storage path:', error)
+    }
+  }
+
+  const handleSelectDirectory = async () => {
+    try {
+      const selected = await storageService.selectDirectory()
+      if (selected) {
+        setStoragePath(selected)
+      }
+    } catch (error) {
+      console.error('Failed to select directory:', error)
     }
   }
 
@@ -43,13 +56,25 @@ export function Settings() {
     if (!storagePath) return
     setLoading(true)
     try {
-      await invoke('set_storage_path', { path: storagePath })
-      // Reload to confirm
-      await loadStoragePath()
+      await storageService.setStoragePath(storagePath)
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (error) {
       console.error('Failed to set storage path:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResetPath = async () => {
+    setLoading(true)
+    try {
+      await storageService.resetToDefault()
+      await loadStoragePath()
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
+    } catch (error) {
+      console.error('Failed to reset path:', error)
     } finally {
       setLoading(false)
     }
@@ -82,6 +107,23 @@ export function Settings() {
                   placeholder="/path/to/accounts.json"
                 />
               </div>
+              <Button
+                variant="outline"
+                onClick={handleSelectDirectory}
+                className="bg-background hover:bg-muted"
+                title={t('settings.browse')}
+              >
+                <FolderOpen className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleResetPath}
+                disabled={loading}
+                className="bg-background hover:bg-muted"
+                title={t('settings.reset')}
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
               <Button
                 onClick={handleUpdatePath}
                 disabled={loading}

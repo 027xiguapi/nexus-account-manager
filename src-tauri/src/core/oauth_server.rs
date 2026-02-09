@@ -133,10 +133,18 @@ pub async fn ensure_oauth_flow_prepared(app_handle: Option<tauri::AppHandle>) ->
             let _ = stream.write_all(response_html.as_bytes()).await;
             let _ = stream.flush().await;
 
+            // 发射事件到前端
             if let Some(h) = app_handle_for_tasks {
                 use tauri::Emitter;
-                let _ = h.emit("oauth-callback-received", ());
+                println!("[OAuth Server] Emitting oauth-callback-received event");
+                match h.emit("oauth-callback-received", ()) {
+                    Ok(_) => println!("[OAuth Server] Event emitted successfully"),
+                    Err(e) => eprintln!("[OAuth Server] Failed to emit event: {}", e),
+                }
+            } else {
+                println!("[OAuth Server] Warning: No app handle available for event emission");
             }
+            
             let _ = tx.send(result).await;
         }
     });
