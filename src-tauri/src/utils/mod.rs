@@ -5,3 +5,5 @@
 pub mod paths;
 pub mod process;
 pub mod db_inject;
+pub mod logger;
+pub mod config;

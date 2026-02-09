@@ -299,11 +299,13 @@ pub async fn antigravity_switch_account(
     let token_res = oauth::refresh_access_token(&refresh_token).await?;
     println!("[Switch] Token refreshed successfully");
     
-    // 2. 关闭 Antigravity IDE 进程
+    // 2. 关闭 Antigravity IDE 进程（并保存路径）
     if crate::utils::process::is_antigravity_running() {
         println!("[Switch] Closing Antigravity IDE...");
         crate::utils::process::close_antigravity(20)?;
         println!("[Switch] Antigravity IDE closed");
+    } else {
+        println!("[Switch] Antigravity IDE is not running, skipping close");
     }
     
     // 3. 注入 Token 到数据库

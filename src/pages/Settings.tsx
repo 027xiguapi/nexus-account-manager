@@ -93,18 +93,23 @@ export function Settings() {
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
           <div className="space-y-3">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-              {t('settings.dataLocation')}
-            </label>
+            <div>
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                {t('settings.dataLocation')}
+              </label>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('settings.dataLocationDesc')}
+              </p>
+            </div>
             <div className="flex gap-3">
               <div className="relative flex-1 group">
                 <FolderOpen className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <input
                   type="text"
-                  value={storagePath}
-                  onChange={(e) => setStoragePath(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="/path/to/accounts.json"
+                  value={storagePath.replace(/[\\\/]accounts\.json$/, '')}
+                  readOnly
+                  className="flex h-10 w-full rounded-md border border-input bg-muted/50 px-10 py-2 text-sm shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 cursor-default"
+                  placeholder={t('settings.browse')}
                 />
               </div>
               <Button
@@ -147,8 +152,11 @@ export function Settings() {
                 )}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground pl-1">
-              {t('settings.currentPath', { path: storagePath })}
+            <p className="text-xs text-muted-foreground pl-1 flex items-start gap-2">
+              <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+              <span>
+                {t('settings.currentPath', { path: storagePath.replace(/[\\\/]accounts\.json$/, '') })}
+              </span>
             </p>
           </div>
 

@@ -233,3 +233,48 @@ pub async fn select_storage_directory(app: AppHandle) -> Result<Option<String>, 
         Ok(None)
     }
 }
+
+/// 从配置文件加载 Antigravity 可执行文件路径
+pub fn load_antigravity_executable(app: &AppHandle) -> Option<String> {
+    let config_path = get_config_path(app).ok()?;
+    
+    if !config_path.exists() {
+        return None;
+    }
+    
+    let content = fs::read_to_string(&config_path).ok()?;
+    let config: serde_json::Value = serde_json::from_str(&content).ok()?;
+    
+    config.get("antigravity_executable")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+}
+
+/// 保存 Antigravity 可执行文件路径到配置文件
+pub fn save_antigravity_executable(app: &AppHandle, path: String) -> Result<(), String> {
+    let config_path = get_config_path(app)?;
+    
+    // Ensure directory exists
+    if let Some(parent) = config_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create config directory: {}", e))?;
+    }
+    
+    let mut config = if config_path.exists() {
+        let content = fs::read_to_string(&config_path)
+            .map_err(|e| format!("Failed to read config: {}", e))?;
+        serde_json::from_str(&content).unwrap_or(serde_json::json!({}))
+    } else {
+        serde_json::json!({})
+    };
+    
+    config["antigravity_executable"] = serde_json::json!(path);
+    
+    let content = serde_json::to_string_pretty(&config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    
+    fs::write(&config_path, content)
+        .map_err(|e| format!("Failed to write config: {}", e))?;
+    
+    Ok(())
+}

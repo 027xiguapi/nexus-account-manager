@@ -96,6 +96,14 @@ nexus-account-manager/
 │       │   ├── import.rs
 │       │   └── mod.rs
 │       │
+│       ├── utils/               # 工具模块
+│       │   ├── logger.rs       # 统一日志系统
+│       │   ├── config.rs       # 配置管理
+│       │   ├── process.rs      # 进程管理
+│       │   ├── db_inject.rs    # 数据库注入
+│       │   ├── paths.rs        # 路径工具
+│       │   └── mod.rs
+│       │
 │       ├── lib.rs               # 库入口
 │       └── main.rs              # 应用入口
 │
@@ -141,17 +149,28 @@ nexus-account-manager/
 ### 2.2 代码编写规则
 
 #### ✅ 必须遵守
+
+**前端（TypeScript）：**
 - 使用 **TypeScript** 编写所有前端代码
-- 使用 **Rust** 编写所有后端代码
-- 遵循 **现有的代码风格** 和命名约定
 - 使用 **已有的 UI 组件**（src/components/ui/）
 - 通过 **Zustand store** 管理全局状态
 - 使用 **i18next** 处理所有用户可见文本
 - 新增平台必须在 `src/platforms/registry.ts` 中注册
 
+**后端（Rust）：**
+- 使用 **Rust** 编写所有后端代码
+- 使用 **统一日志系统**（`crate::utils::logger`）进行日志输出：
+  - `log_info()` - 信息日志
+  - `log_warn()` - 警告日志
+  - `log_error()` - 错误日志
+  - `log_debug()` - 调试日志
+- 使用 **配置管理模块**（`crate::utils::config`）管理应用配置
+- 遵循 **现有的代码风格** 和命名约定
+
 #### ❌ 禁止操作
 - 引入 **新的 npm 依赖**（除非明确批准）
 - 引入 **新的 Rust crate**（除非明确批准）
+- 在 Rust 代码中直接使用 `println!` 或 `eprintln!`（应使用统一日志系统）
 - "顺手重构" **无关代码**
 - 擅自抽象或创建 **新的设计模式**
 - 跨目录 **复制粘贴代码**
@@ -266,15 +285,23 @@ src/platforms/[platform-name]/
 
 在提交代码前，确认以下事项：
 
+**通用：**
 - [ ] 没有新增未声明的目录
 - [ ] 没有引入新的依赖
 - [ ] 没有修改核心架构
 - [ ] 代码符合 TypeScript/Rust 规范
+
+**前端（TypeScript）：**
 - [ ] 新增平台已在 registry.ts 注册
 - [ ] 所有文本使用 i18next 国际化
 - [ ] UI 组件使用现有的 Radix UI 组件
 - [ ] 状态管理使用 Zustand
+
+**后端（Rust）：**
+- [ ] 使用统一日志系统（`crate::utils::logger`）
+- [ ] 没有直接使用 `println!` 或 `eprintln!`
 - [ ] Tauri 命令已正确注册
+- [ ] 配置管理使用 `crate::utils::config`
 
 ---
 
@@ -287,5 +314,62 @@ src/platforms/[platform-name]/
 ---
 
 **最后更新**: 2026-02-09  
-**版本**: 2.0  
+**版本**: 2.1  
 **维护者**: adnaan
+
+---
+
+## 八、Rust 后端开发规范
+
+### 8.1 统一日志系统
+
+所有 Rust 代码必须使用 `crate::utils::logger` 模块进行日志输出：
+
+```rust
+use crate::utils::logger::{log_info, log_warn, log_error, log_debug};
+
+// 信息日志
+log_info("Starting process...");
+log_info(&format!("Processing {} items", count));
+
+// 警告日志
+log_warn("Configuration not found, using defaults");
+
+// 错误日志
+log_error(&format!("Failed to connect: {}", error));
+
+// 调试日志
+log_debug("Debug information");
+```
+
+**禁止直接使用：**
+- `println!()` - 应使用 `log_info()`
+- `eprintln!()` - 应使用 `log_error()`
+
+### 8.2 配置管理
+
+使用 `crate::utils::config` 模块管理应用配置：
+
+```rust
+use crate::utils::config::{load_app_config, AppConfig};
+
+// 加载配置
+let config = load_app_config()?;
+
+// 访问配置项
+if let Some(exe_path) = config.antigravity_executable {
+    // 使用配置的可执行文件路径
+}
+
+if let Some(args) = config.antigravity_args {
+    // 使用配置的启动参数
+}
+```
+
+**配置结构：**
+```rust
+pub struct AppConfig {
+    pub antigravity_executable: Option<String>,  // 可执行文件路径
+    pub antigravity_args: Option<Vec<String>>,   // 启动参数
+}
+```
