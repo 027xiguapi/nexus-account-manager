@@ -1,8 +1,4 @@
-dialog.tsx:543  Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-(匿名) @ dialog.tsx:543
-2OAuthMethod.tsx?t=1770640574531:109  Uncaught (in promise) event.listen not allowed. Permissions associated with this command: core:event:allow-listen, core:event:default
-OAuthMethod.tsx?t=1770640574531:124 [OAuth] OAuth URL generated: https://accounts.google.com/o/oauth2/v2/auth?client_id=1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com&redirect_uri=http%3A%2F%2F127.0.0.1%3A64279%2Foauth-callback&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcclog+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fexperimentsandconfigs&access_type=offline&prompt=consent&include_granted_scopes=true&state=db7697f1-d4e7-4d0d-91d2-e9f301e0c4ee
-OAuthMethod.tsx?t=1770640574531:128 [OAuth] Browser opened, waiting for callback...//! Antigravity IDE 数据库 Token 注入
+//! Antigravity IDE 数据库 Token 注入
 //! 
 //! 将账号的 Token 注入到 Antigravity IDE 的 state.vscdb 数据库中
 
