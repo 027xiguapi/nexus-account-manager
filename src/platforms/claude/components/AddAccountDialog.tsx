@@ -1,5 +1,5 @@
 /**
- * Claude添加/修改对话框
+ * Claude 添加/修改对话框
  * 
  * 根据平台配置动态加载添加方式
  */
@@ -7,31 +7,22 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/usePlatformStore'
-import { getAllPlatforms, getPlatform } from '@/platforms/registry'
+import { getPlatform } from '@/platforms/registry'
 import { cn } from '@/lib/utils'
 import type { Account } from '@/types/platform'
 
 export function AddAccountDialog() {
     const [open, setOpen] = useState(false)
-    const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null)
+    const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
     const { t } = useTranslation()
     const { addAccount, loadAllAccounts } = usePlatformStore()
-    const platforms = getAllPlatforms()
-    const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
 
-    // 获取当前平台配置
-    const platform = selectedPlatform ? getPlatform(selectedPlatform) : null
+    const platformId = 'claude'
+    const platform = getPlatform(platformId)
     const methods = platform?.addMethods || []
-
-    // 平台切换时重置方法选择
-    const handlePlatformChange = (platformId: string) => {
-        setSelectedPlatform(platformId)
-        setSelectedMethod(null)
-    }
 
     // 添加成功回调
     const handleSuccess = async (account: Account) => {
@@ -100,14 +91,14 @@ export function AddAccountDialog() {
         }
 
         const method = methods.find(m => m.id === selectedMethod)
-        if (!method || !selectedPlatform) return null
+        if (!method) return null
 
         const MethodComponent = method.component
 
         return (
             <div className="animate-in fade-in slide-in-from-top-2 duration-200">
                 <MethodComponent
-                    platform={selectedPlatform}
+                    platform={platformId}
                     onSuccess={handleSuccess}
                     onError={handleError}
                     onClose={handleClose}
@@ -117,7 +108,7 @@ export function AddAccountDialog() {
     }
 
     return (
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSelectedMethod(null); setTimeout(() => setSelectedPlatform(null), 300) } }}>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSelectedMethod(null) } }}>
             <DialogTrigger asChild>
                 <Button variant="default" className="shadow-sm">
                     <Plus className="mr-2 h-4 w-4" />
@@ -131,25 +122,6 @@ export function AddAccountDialog() {
                         {t('dialog.addAccount')}
                     </DialogTitle>
                 </DialogHeader>
-
-                {/* 平台选择 */}
-                <Tabs value={selectedPlatform || ''} onValueChange={handlePlatformChange} className="w-full">
-                    <TabsList className="grid w-full grid-cols-5 bg-muted p-1">
-                        {platforms.map((p) => {
-                            const Icon = p.icon
-                            return (
-                                <TabsTrigger
-                                    key={p.id}
-                                    value={p.id}
-                                    className="gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    {p.name}
-                                </TabsTrigger>
-                            )
-                        })}
-                    </TabsList>
-                </Tabs>
 
                 {/* 添加方式选择 */}
                 <div className="mt-4">

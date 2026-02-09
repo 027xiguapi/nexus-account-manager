@@ -99,7 +99,7 @@ nexus-account-manager/
 │       ├── commands/        # Tauri commands
 │       └── lib.rs           # Main entry
 │
-└── docs/                    # Documentation
+├── docs/                    # Documentation
 │
 └── test/                    # Test
 ```

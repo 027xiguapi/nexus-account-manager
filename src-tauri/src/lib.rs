@@ -5,7 +5,7 @@ mod utils;
 use commands::*;
 use core::Storage;
 use std::sync::Mutex;
-use tauri::{Manager, Emitter};
+use tauri::{Manager, Emitter, menu::{Menu, MenuItem}, tray::TrayIconBuilder};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -14,6 +14,12 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             let _ = app.emit("single-instance", args.clone());
+            
+            // Show window when another instance is launched
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
             
             if let Some(url) = args.iter().find(|a| a.starts_with("kiro://")) {
                 use tauri::Manager;
@@ -66,6 +72,66 @@ pub fn run() {
             app.manage(AppState {
                 storage: Mutex::new(storage),
             });
+
+            // =============================
+            // Setup System Tray
+            // =============================
+            let show_item = MenuItem::with_id(app, "show", "显示主窗口", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
+
+            // Save menu item IDs
+            let show_id = show_item.id().0.clone();
+            let quit_id = quit_item.id().0.clone();
+
+            // Load tray icon from app icon
+            let icon = app.default_window_icon().cloned().expect("Failed to get app icon");
+
+            // Build tray icon
+            let _tray = TrayIconBuilder::new()
+                .icon(icon)
+                .menu(&menu)
+                .tooltip("Nexus Account Manager")
+                .on_menu_event(move |app, event| {
+                    let event_id = event.id().as_ref();
+                    match event_id {
+                        id if id == show_id => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                                println!("Window shown from tray menu");
+                            }
+                        }
+                        id if id == quit_id => {
+                            println!("Quit from tray menu");
+                            app.exit(0);
+                        }
+                        _ => {}
+                    }
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let tauri::tray::TrayIconEvent::Click { button: tauri::tray::MouseButton::Left, .. } = event {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                            println!("Window shown from tray click");
+                        }
+                    }
+                })
+                .build(app)?;
+
+            // Handle window close event - hide window and keep running in background
+            if let Some(window) = app.get_webview_window("main") {
+                let window_clone = window.clone();
+                window.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                        println!("Close requested - hiding window and running in background");
+                        api.prevent_close();
+                        let _ = window_clone.hide();
+                    }
+                });
+            }
             
             Ok(())
         })
