@@ -100,6 +100,8 @@ nexus-account-manager/
 │       └── lib.rs           # Main entry
 │
 └── docs/                    # Documentation
+│
+└── test/                    # Test
 ```
 
 ## 🔌 Adding a New Platform
@@ -151,6 +153,18 @@ export function MyPlatformAccountList() {
 ```
 
 That's it! Your new platform is now integrated.
+
+## 🤖 AI Programming Guidelines
+
+This project follows **strict AI programming rules**.
+Before using any AI-assisted development, **you must include the following statement at the beginning of the conversation**:
+
+```markdown
+Please strictly follow all rules defined in #[[file:docs/PROJECT_RULES.md]] during development.
+```
+
+For detailed guidelines, please refer to: **[docs/PROJECT_RULES.md](./docs/PROJECT_RULES.md)**
+
 
 ## 📝 License
 
