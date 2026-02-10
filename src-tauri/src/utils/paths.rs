@@ -56,12 +56,4 @@ pub fn get_ide_database_paths() -> Vec<PathBuf> {
     paths
 }
 
-/// 查找存在的 IDE 数据库路径
-/// 
-/// 返回实际存在的数据库文件路径列表
-pub fn find_existing_ide_databases() -> Vec<PathBuf> {
-    get_ide_database_paths()
-        .into_iter()
-        .filter(|p| p.exists())
-        .collect()
-}
+

@@ -97,6 +97,7 @@ pub fn log_warn<T: Display>(message: T) {
 }
 
 /// 输出错误日志
+#[allow(dead_code)]
 pub fn log_error<T: Display>(message: T) {
     log_message("ERROR", message, true);
 }

@@ -468,11 +468,7 @@ pub fn get_path_from_running_process() -> Option<std::path::PathBuf> {
     path
 }
 
-/// 从运行进程获取 Antigravity 启动参数
-pub fn get_args_from_running_process() -> Option<Vec<String>> {
-    let (_, args) = get_process_info();
-    args
-}
+
 
 /// 获取 Antigravity 可执行文件路径（跨平台）
 ///

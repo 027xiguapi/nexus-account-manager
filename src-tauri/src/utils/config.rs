@@ -19,6 +19,7 @@ pub struct AppConfig {
 
 impl AppConfig {
     /// 创建新的配置实例
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self::default()
     }
@@ -159,6 +160,7 @@ pub fn update_antigravity_path(path: String) -> Result<(), String> {
 }
 
 /// 更新 Antigravity 启动参数
+#[allow(dead_code)]
 pub fn update_antigravity_args(args: Vec<String>) -> Result<(), String> {
     let mut config = load_app_config()?;
     config.antigravity_args = Some(args);
