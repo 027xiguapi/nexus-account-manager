@@ -6,13 +6,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Loader2, CheckCircle2, AlertCircle, Copy, Check, ExternalLink } from 'lucide-react'
+import { Loader2, CheckCircle2, AlertCircle, Copy, Check, ExternalLink, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-// @ts-ignore
-import { openUrl } from '@tauri-apps/plugin-opener';
 import { invoke } from '@tauri-apps/api/core'
 import type { AddMethodProps } from '@/types/platform'
-import type { KiroAccount } from '@/types/account'
+import type { KiroAccount, KiroSubscriptionType } from '@/types/account'
 import { cn } from '@/lib/utils'
 
 type Status = 'idle' | 'waiting' | 'success' | 'error'
@@ -21,10 +19,35 @@ interface DeviceCodeData {
     deviceCode: string
     userCode: string
     verificationUri: string
+    verificationUriComplete?: string
     expiresIn: number
     interval: number
     clientId: string
     clientSecret: string
+}
+
+// Backend response type (snake_case from Rust)
+interface BackendKiroAccount {
+    id: string
+    email: string
+    name?: string | null
+    access_token: string
+    refresh_token?: string | null
+    client_id?: string | null
+    client_secret?: string | null
+    expires_in: number
+    quota: {
+        subscription_type?: string
+        subscription_title?: string
+        current?: number
+        limit?: number
+    }
+}
+
+interface PollResult {
+    completed: boolean
+    account?: BackendKiroAccount
+    error?: string
 }
 
 export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps) {
@@ -35,6 +58,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
     const [message, setMessage] = useState('')
     const [deviceCodeData, setDeviceCodeData] = useState<DeviceCodeData | null>(null)
     const [copied, setCopied] = useState(false)
+    const [usePrivateMode, setUsePrivateMode] = useState(true) // 默认启用隐私模式
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
     // 清理轮询
@@ -43,6 +67,31 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
             if (pollRef.current) clearInterval(pollRef.current)
         }
     }, [])
+
+    // 打开浏览器（支持隐私模式）
+    const openBrowser = async (url: string) => {
+        try {
+            if (usePrivateMode) {
+                // 使用隐私模式命令
+                console.log('[Browser] Attempting to open in private mode:', url)
+                await invoke('open_url_in_private_mode', { url })
+                console.log('[Browser] Private mode command completed')
+            } else {
+                // 使用默认浏览器 - 使用 Tauri opener plugin
+                console.log('[Browser] Opening in default browser:', url)
+                const { openUrl } = await import('@tauri-apps/plugin-opener')
+                await openUrl(url)
+                console.log('[Browser] Default browser opened')
+            }
+        } catch (e) {
+            console.error("Open browser failed:", e)
+            setMessage(isEn 
+                ? `Browser open failed: ${e}. Trying fallback...` 
+                : `浏览器打开失败: ${e}。尝试备用方案...`)
+            // 回退到 window.open
+            window.open(url, '_blank')
+        }
+    }
 
     // 开始登录
     const handleStartLogin = async () => {
@@ -53,17 +102,12 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
             const result = await invoke<DeviceCodeData>('kiro_start_device_auth')
             setDeviceCodeData(result)
             setMessage(isEn
-                ? 'Please copy the code and complete authorization in browser'
-                : '请复制验证码并在浏览器中完成授权')
+                ? 'Please complete authorization in browser'
+                : '请在浏览器中完成授权')
 
-            // 打开浏览器
-            try {
-                // @ts-ignore
-                await openUrl(result.verificationUri)
-            } catch (e) {
-                console.error("Open failed, fallback", e)
-                window.open(result.verificationUri, '_blank')
-            }
+            // 优先使用完整的验证 URL（携带 user_code）
+            const urlToOpen = result.verificationUriComplete || result.verificationUri
+            await openBrowser(urlToOpen)
 
             // 开始轮询
             startPolling(result.interval, result)
@@ -76,11 +120,16 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
 
     // 轮询授权状态
     const startPolling = (interval: number, authData: DeviceCodeData) => {
-        if (pollRef.current) clearInterval(pollRef.current)
+        if (pollRef.current) clearInterval(pollRef.current!)
+
+        let pollCount = 0
+        const maxPolls = Math.floor(authData.expiresIn / interval) // 根据过期时间计算最大轮询次数
 
         pollRef.current = setInterval(async () => {
+            pollCount++
+            
             try {
-                const result = await invoke<{ completed: boolean; account?: KiroAccount; error?: string }>('kiro_poll_token', {
+                const result = await invoke<PollResult>('kiro_poll_token', {
                     deviceCode: authData.deviceCode,
                     clientId: authData.clientId,
                     clientSecret: authData.clientSecret
@@ -88,23 +137,69 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
 
                 if (result.completed && result.account) {
                     clearInterval(pollRef.current!)
+                    
+                // Transform backend account (snake_case) to frontend KiroAccount (camelCase)
+                const backendAccount = result.account
+                const kiroAccount: KiroAccount = {
+                    id: backendAccount.id,
+                    platform: 'kiro',
+                    email: backendAccount.email,
+                    name: backendAccount.name || undefined,
+                    isActive: false,
+                    lastUsedAt: Date.now(),
+                    createdAt: Date.now(),
+                    idp: 'BuilderId',
+                    credentials: {
+                        accessToken: backendAccount.accessToken,
+                        refreshToken: backendAccount.refreshToken || undefined,
+                        clientId: backendAccount.clientId || undefined,
+                        clientSecret: backendAccount.clientSecret || undefined,
+                        expiresAt: Date.now() + backendAccount.expiresIn * 1000,
+                        authMethod: 'oidc',
+                        region: 'us-east-1'
+                    },
+                    subscription: {
+                        type: (backendAccount.quota.subscriptionType as KiroSubscriptionType) || 'Free',
+                        title: backendAccount.quota.subscriptionTitle
+                    },
+                    usage: {
+                        current: backendAccount.quota.currentUsage || 0,
+                        limit: backendAccount.quota.totalLimit || 25,
+                        percentUsed: backendAccount.quota.totalLimit && backendAccount.quota.totalLimit > 0
+                            ? (backendAccount.quota.currentUsage || 0) / backendAccount.quota.totalLimit
+                            : 0,
+                        lastUpdated: Date.now()
+                    },
+                    status: 'active',
+                    lastCheckedAt: Date.now()
+                }
+                    
                     setStatus('success')
                     setMessage(isEn ? 'Login successful!' : '登录成功！')
-                    onSuccess(result.account)
+                    onSuccess(kiroAccount)
                     setTimeout(onClose, 1000)
                 } else if (result.error) {
+                    // 只有在非预期错误时才停止轮询
+                    // pending 和 slow_down 会在后端处理，这里不会收到
                     clearInterval(pollRef.current!)
                     setStatus('error')
-                    setMessage(result.error)
+                    setMessage(isEn 
+                        ? `Authorization failed: ${result.error}` 
+                        : `授权失败: ${result.error}`)
                     onError(result.error)
                 }
             } catch (e: any) {
-                // 继续轮询，除非是致命错误
-                if (e.message?.includes('expired')) {
+                console.error('[Poll] Error:', e)
+                // 检查是否超时
+                if (pollCount >= maxPolls) {
                     clearInterval(pollRef.current!)
                     setStatus('error')
-                    setMessage(isEn ? 'Authorization expired, please try again' : '授权已过期，请重试')
+                    setMessage(isEn 
+                        ? 'Authorization timed out. Please try again.' 
+                        : '授权超时，请重试')
+                    onError('Authorization timed out')
                 }
+                // 其他错误继续轮询
             }
         }, interval * 1000)
     }
@@ -130,14 +225,66 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
     return (
         <div className="space-y-4">
             {status === 'idle' && (
-                <Button
-                    variant="outline"
-                    className="w-full py-6 gap-2"
-                    onClick={handleStartLogin}
-                >
-                    <ExternalLink className="h-4 w-4" />
-                    {isEn ? 'Login with AWS Builder ID' : '使用 AWS Builder ID 登录'}
-                </Button>
+                <>
+                    {/* 隐私模式选项 */}
+                    <div className="px-2">
+                        <button
+                            type="button"
+                            onClick={() => setUsePrivateMode(!usePrivateMode)}
+                            className={cn(
+                                "w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all duration-200",
+                                usePrivateMode 
+                                    ? 'bg-primary/5 border-primary/30 hover:bg-primary/10' 
+                                    : 'bg-muted/30 border-transparent hover:bg-muted/50'
+                            )}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className={cn(
+                                    "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                                    usePrivateMode ? 'bg-primary/20' : 'bg-muted'
+                                )}>
+                                    <EyeOff className={cn(
+                                        "w-4 h-4",
+                                        usePrivateMode ? 'text-primary' : 'text-muted-foreground'
+                                    )} />
+                                </div>
+                                <div className="text-left">
+                                    <div className={cn(
+                                        "text-sm font-medium",
+                                        usePrivateMode ? 'text-foreground' : 'text-muted-foreground'
+                                    )}>
+                                        {isEn ? 'Private/Incognito Mode' : '隐私/无痕模式'}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                        {usePrivateMode 
+                                            ? (isEn ? 'Enabled' : '已启用') 
+                                            : (isEn ? 'Disabled' : '已禁用')}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className={cn(
+                                "relative w-11 h-6 rounded-full transition-colors",
+                                usePrivateMode ? 'bg-primary' : 'bg-muted-foreground/30'
+                            )}>
+                                <div className={cn(
+                                    "absolute top-0.5 w-5 h-5 rounded-full shadow-sm transition-all",
+                                    usePrivateMode 
+                                        ? 'translate-x-5 bg-background' 
+                                        : 'translate-x-0.5 bg-white'
+                                )} />
+                            </div>
+                        </button>
+                    </div>
+
+                    <Button
+                        variant="outline"
+                        className="w-full py-6 gap-2"
+                        onClick={handleStartLogin}
+                    >
+                        <ExternalLink className="h-4 w-4" />
+                        {isEn ? 'Login with AWS Builder ID' : '使用 AWS Builder ID 登录'}
+                    </Button>
+                </>
             )}
 
             {/* Device Code Display */}
@@ -162,9 +309,8 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                             variant="outline"
                             className="flex-1"
                             onClick={async () => {
-                                // @ts-ignore
-                                try { await openUrl(deviceCodeData.verificationUri) }
-                                catch (e) { window.open(deviceCodeData.verificationUri, '_blank') }
+                                const urlToOpen = deviceCodeData.verificationUriComplete || deviceCodeData.verificationUri
+                                await openBrowser(urlToOpen)
                             }}
                         >
                             <ExternalLink className="mr-2 h-4 w-4" />

@@ -87,10 +87,25 @@
         "usage": "使用量",
         "banned": "已封禁",
         "expired": "已过期",
-        "doubleClickToSwitch": "双击切换账号"
+        "doubleClickToSwitch": "双击切换账号",
+        "status": {
+            "active": "正常",
+            "error": "错误",
+            "refreshing": "刷新中",
+            "banned": "已封禁",
+            "unknown": "未知"
+        },
+        "autoRefresh": "自动刷新",
+        "refreshing": "刷新中...",
+        "lastChecked": "最后检查",
+        "tokenExpiring": "令牌即将过期",
+        "tokenExpired": "令牌已过期",
+        "privateMode": "隐私/无痕模式",
+        "privateModeDesc": "在隐私模式下打开浏览器进行授权"
     },
     "dialog": {
         "addAccount": "添加新账号",
+        "selectMethod": "请选择添加方式",
         "save": "保存账号",
         "cancel": "取消",
         "email": "邮箱",

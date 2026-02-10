@@ -30,13 +30,45 @@ export function SocialMethod({ onSuccess, onError, onClose }: AddMethodProps) {
         setMessage(isEn ? `Logging in with ${selectedProvider}...` : `正在使用 ${selectedProvider} 登录...`)
 
         try {
-            const account = await invoke<KiroAccount>('kiro_social_login', {
+            const result = await invoke<any>('kiro_social_login', {
                 provider: selectedProvider
             })
 
+            // Transform backend account to frontend KiroAccount
+            const kiroAccount: KiroAccount = {
+                id: result.id,
+                platform: 'kiro',
+                email: result.email,
+                name: result.name,
+                isActive: false,
+                lastUsedAt: Date.now(),
+                createdAt: Date.now(),
+                idp: selectedProvider === 'Google' ? 'Google' : 'Github',
+                credentials: {
+                    accessToken: result.access_token,
+                    refreshToken: result.refresh_token,
+                    expiresAt: result.expires_in ? Date.now() + result.expires_in * 1000 : undefined,
+                    authMethod: 'social'
+                },
+                subscription: {
+                    type: result.quota?.subscription_type || 'Free',
+                    title: result.quota?.subscription_title
+                },
+                usage: {
+                    current: result.quota?.current || 0,
+                    limit: result.quota?.limit || 25,
+                    percentUsed: result.quota?.limit > 0
+                        ? result.quota.current / result.quota.limit
+                        : 0,
+                    lastUpdated: Date.now()
+                },
+                status: 'active',
+                lastCheckedAt: Date.now()
+            }
+
             setStatus('success')
             setMessage(isEn ? 'Login successful!' : '登录成功！')
-            onSuccess(account)
+            onSuccess(kiroAccount)
             setTimeout(onClose, 1000)
         } catch (e: any) {
             setStatus('error')

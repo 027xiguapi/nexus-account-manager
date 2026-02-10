@@ -87,10 +87,25 @@
         "usage": "Usage",
         "banned": "Banned",
         "expired": "Expired",
-        "doubleClickToSwitch": "Double-click to switch"
+        "doubleClickToSwitch": "Double-click to switch",
+        "status": {
+            "active": "Active",
+            "error": "Error",
+            "refreshing": "Refreshing",
+            "banned": "Banned",
+            "unknown": "Unknown"
+        },
+        "autoRefresh": "Auto Refresh",
+        "refreshing": "Refreshing...",
+        "lastChecked": "Last Checked",
+        "tokenExpiring": "Token Expiring",
+        "tokenExpired": "Token Expired",
+        "privateMode": "Private/Incognito Mode",
+        "privateModeDesc": "Open browser in private mode for authorization"
     },
     "dialog": {
         "addAccount": "Add New Account",
+        "selectMethod": "Please select an add method",
         "save": "Save Account",
         "cancel": "Cancel",
         "email": "Email",

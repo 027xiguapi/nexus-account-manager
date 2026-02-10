@@ -11,6 +11,7 @@ use tauri::{Manager, Emitter, menu::{Menu, MenuItem}, tray::TrayIconBuilder};
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             let _ = app.emit("single-instance", args.clone());
@@ -177,6 +178,7 @@ pub fn run() {
             kiro::kiro_verify_credentials,
             kiro::kiro_social_login,
             kiro::switch_kiro_account,
+            kiro::open_url_in_private_mode,
             // Claude 命令
             claude::switch_claude_account,
             claude::get_claude_config,

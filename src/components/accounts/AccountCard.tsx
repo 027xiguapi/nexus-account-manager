@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { AccountDetailsDialog } from '@/components/dialogs/AccountDetailsDialog'
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog'
 import { QuotaItem } from '@/components/accounts/QuotaItem'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
@@ -21,7 +22,8 @@ import {
     Gem,
     Diamond,
     Circle,
-    Edit
+    Edit,
+    Loader2
 } from 'lucide-react'
 
 // 订阅类型颜色
@@ -61,6 +63,7 @@ export const AccountCard = memo(function AccountCard({
     const [copied, setCopied] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [detailsOpen, setDetailsOpen] = useState(false)
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
     const deleteAccount = usePlatformStore(state => state.deleteAccount)
     const setActiveAccount = usePlatformStore(state => state.setActiveAccount)
     const updateAccount = usePlatformStore(state => state.updateAccount)
@@ -90,9 +93,17 @@ export const AccountCard = memo(function AccountCard({
 
     const handleRefresh = async () => {
         setIsRefreshing(true)
-        onRefresh?.()
-        // 模拟刷新 - 实际应调用后端 API
-        setTimeout(() => setIsRefreshing(false), 1000)
+        
+        if (isKiro) {
+            // Call Kiro-specific refresh
+            const refreshKiroToken = usePlatformStore.getState().refreshKiroToken
+            await refreshKiroToken(account.id)
+        } else {
+            // Call platform-specific refresh if available
+            onRefresh?.()
+        }
+        
+        setIsRefreshing(false)
     }
 
     const handleSwitch = () => {
@@ -109,10 +120,8 @@ export const AccountCard = memo(function AccountCard({
     }
 
     const handleDelete = () => {
-        if (confirm(t('common.confirmDelete', { name: account.email }))) {
-            deleteAccount(account.id)
-            onDelete?.(account)
-        }
+        deleteAccount(account.id)
+        onDelete?.(account)
     }
 
     const handleEdit = () => {
@@ -185,6 +194,23 @@ export const AccountCard = memo(function AccountCard({
                         <Badge variant="outline" className="text-[10px] h-5 px-2 text-muted-foreground border-border bg-muted/30">
                             {isAntigravity ? 'Antigravity' : isKiro ? (kiro?.idp || 'Kiro') : account.platform}
                         </Badge>
+                        
+                        {/* Kiro Status Badge */}
+                        {isKiro && kiro?.status && kiro.status !== 'active' && (
+                            <Badge 
+                                variant="outline" 
+                                className={cn(
+                                    'text-[10px] h-5 px-2 border-0',
+                                    kiro.status === 'error' && 'bg-red-500/10 text-red-600',
+                                    kiro.status === 'banned' && 'bg-red-600/20 text-red-700',
+                                    kiro.status === 'refreshing' && 'bg-blue-500/10 text-blue-600',
+                                    kiro.status === 'unknown' && 'bg-gray-500/10 text-gray-600'
+                                )}
+                            >
+                                {kiro.status === 'refreshing' && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+                                {kiro.status.toUpperCase()}
+                            </Badge>
+                        )}
                     </div>
 
                     {/* Quota Display */}
@@ -320,7 +346,7 @@ export const AccountCard = memo(function AccountCard({
                                 size="icon"
                                 variant="ghost"
                                 className="h-7 w-7 hover:bg-red-500/10 hover:text-red-500"
-                                onClick={handleDelete}
+                                onClick={() => setDeleteConfirmOpen(true)}
                                 title={t('common.delete')}
                             >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -335,6 +361,18 @@ export const AccountCard = memo(function AccountCard({
                 account={account}
                 open={detailsOpen}
                 onClose={() => setDetailsOpen(false)}
+            />
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                title={t('common.delete')}
+                description={t('common.confirmDelete', { name: account.email })}
+                confirmText={t('common.delete')}
+                cancelText={t('common.cancel')}
+                variant="destructive"
+                onConfirm={handleDelete}
             />
         </>
     )

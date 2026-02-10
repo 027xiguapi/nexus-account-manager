@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { AddAccountDialog } from './AddAccountDialog'
 import { ExportDialog } from '@/components/dialogs/ExportDialog'
-import { AccountCard } from '@/components/accounts/AccountCard'
+import { KiroAccountCard } from './KiroAccountCard'
 import { AccountTable } from '@/components/accounts/AccountTable'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -90,7 +90,7 @@ export function KiroAccountList() {
           {viewMode === 'grid' ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {kiroAccounts.map((account) => (
-                <AccountCard
+                <KiroAccountCard
                   key={account.id}
                   account={account}
                   onExport={() => setExportOpen(true)}

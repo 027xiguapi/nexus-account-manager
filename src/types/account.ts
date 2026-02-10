@@ -54,11 +54,32 @@ export interface AntigravityAccount extends BaseAccount {
 }
 
 // --- Kiro Specifics ---
-export type KiroIdpType = 'Google' | 'Github' | 'BuilderId' | 'Enterprise';
-export type KiroSubscriptionType = 'Free' | 'Pro' | 'Enterprise';
+export type KiroIdpType = 'Google' | 'Github' | 'BuilderId' | 'AWSIdC' | 'Enterprise';
+export type KiroSubscriptionType = 'Free' | 'Pro' | 'Ultra' | 'Enterprise';
+export type KiroAccountStatus = 'active' | 'error' | 'refreshing' | 'unknown' | 'banned';
+
+export interface KiroCredentials {
+    accessToken: string;
+    refreshToken?: string;
+    clientId?: string;
+    clientSecret?: string;
+    region?: string;
+    expiresAt?: number;
+    authMethod?: 'social' | 'oidc' | 'sso'; // Social (Google/GitHub), OIDC (BuilderId), SSO (imported)
+    provider?: string; // For distinguishing same email different providers
+}
 
 export interface KiroSubscription {
     type: KiroSubscriptionType;
+    title?: string; // Display name like "Kiro Pro"
+    expiresAt?: number;
+    daysRemaining?: number;
+    autoRenew?: boolean;
+}
+
+export interface KiroUsageBonus {
+    amount: number;
+    reason: string;
     expiresAt?: number;
 }
 
@@ -66,6 +87,16 @@ export interface KiroUsage {
     current: number;
     limit: number;
     percentUsed: number;
+    lastUpdated: number;
+    // Detailed breakdown
+    baseLimit?: number;
+    baseCurrent?: number;
+    freeTrialLimit?: number;
+    freeTrialCurrent?: number;
+    freeTrialExpiry?: string;
+    bonuses?: KiroUsageBonus[];
+    nextResetDate?: string;
+    resourceDetail?: string; // e.g., "Conversation Turns"
 }
 
 export interface KiroAccount extends BaseAccount {
@@ -73,11 +104,20 @@ export interface KiroAccount extends BaseAccount {
     // Identity
     idp: KiroIdpType;
     userId?: string;
+    // Credentials
+    credentials: KiroCredentials;
     // Security
     machineId?: string; // Bound machine ID
     // Billing
     subscription: KiroSubscription;
     usage: KiroUsage;
+    // Status
+    status: KiroAccountStatus;
+    lastError?: string;
+    lastCheckedAt?: number;
+    // Organization (optional)
+    groupId?: string;
+    tags?: string[];
 }
 
 // --- Claude Specifics ---

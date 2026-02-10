@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/usePlatformStore'
@@ -53,6 +54,8 @@ export function AccountTable({
     const { t } = useTranslation()
     const deleteAccount = usePlatformStore(state => state.deleteAccount)
     const [copiedId, setCopiedId] = useState<string | null>(null)
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+    const [accountToDelete, setAccountToDelete] = useState<Account | null>(null)
 
     const handleCopyEmail = async (email: string, id: string) => {
         await navigator.clipboard.writeText(email)
@@ -61,10 +64,16 @@ export function AccountTable({
     }
 
     const handleDelete = (account: Account) => {
-        if (confirm(t('common.confirmDelete', { defaultValue: `Delete ${account.email}?` }))) {
-            deleteAccount(account.id)
-            onDelete?.(account)
+        setAccountToDelete(account)
+        setDeleteConfirmOpen(true)
+    }
+
+    const confirmDelete = () => {
+        if (accountToDelete) {
+            deleteAccount(accountToDelete.id)
+            onDelete?.(accountToDelete)
             toast.success(t('common.deleteSuccess', { defaultValue: 'Account deleted' }))
+            setAccountToDelete(null)
         }
     }
 
@@ -282,6 +291,18 @@ export function AccountTable({
                     </tbody>
                 </table>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                title={t('common.delete')}
+                description={t('common.confirmDelete', { name: accountToDelete?.email || '' })}
+                confirmText={t('common.delete')}
+                cancelText={t('common.cancel')}
+                variant="destructive"
+                onConfirm={confirmDelete}
+            />
         </Card>
     )
 }

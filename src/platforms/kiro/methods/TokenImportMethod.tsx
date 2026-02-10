@@ -57,10 +57,41 @@ export function TokenImportMethod({ onSuccess, onError, onClose }: AddMethodProp
             setProgress({ current: i + 1, total: tokens.length })
 
             try {
-                const account = await invoke<KiroAccount>('kiro_import_sso_token', {
+                const result = await invoke<any>('kiro_import_sso_token', {
                     token: tokens[i]
                 })
-                onSuccess(account)
+                
+                // Transform backend account to frontend KiroAccount
+                const kiroAccount: KiroAccount = {
+                    id: result.id,
+                    platform: 'kiro',
+                    email: result.email,
+                    name: result.name,
+                    isActive: false,
+                    lastUsedAt: Date.now(),
+                    createdAt: Date.now(),
+                    idp: 'Enterprise', // SSO tokens are typically enterprise
+                    credentials: {
+                        accessToken: result.accessToken,
+                        authMethod: 'sso'
+                    },
+                    subscription: {
+                        type: result.quota?.subscriptionType || 'Free',
+                        title: result.quota?.subscriptionTitle
+                    },
+                    usage: {
+                        current: result.quota?.currentUsage || 0,
+                        limit: result.quota?.totalLimit || 25,
+                        percentUsed: result.quota?.totalLimit > 0
+                            ? (result.quota.currentUsage || 0) / result.quota.totalLimit
+                            : 0,
+                        lastUpdated: Date.now()
+                    },
+                    status: 'active',
+                    lastCheckedAt: Date.now()
+                }
+                
+                onSuccess(kiroAccount)
                 successCount++
             } catch (e: any) {
                 errors.push(`#${i + 1}: ${e.message || 'Failed'}`)
@@ -92,13 +123,61 @@ export function TokenImportMethod({ onSuccess, onError, onClose }: AddMethodProp
             setProgress({ current: i + 1, total: credentials.length })
 
             try {
-                const account = await invoke<KiroAccount>('kiro_verify_credentials', {
+                const result = await invoke<any>('kiro_verify_credentials', {
                     credentials: credentials[i]
                 })
-                onSuccess(account)
+                
+                // Transform backend account to frontend KiroAccount
+                const kiroAccount: KiroAccount = {
+                    id: result.id,
+                    platform: 'kiro',
+                    email: result.email,
+                    name: result.name,
+                    isActive: false,
+                    lastUsedAt: Date.now(),
+                    createdAt: Date.now(),
+                    idp: 'BuilderId', // OIDC credentials are typically BuilderId
+                    credentials: {
+                        accessToken: result.accessToken,
+                        refreshToken: result.refreshToken,
+                        clientId: result.clientId,
+                        clientSecret: result.clientSecret,
+                        expiresAt: result.expiresIn ? Date.now() + result.expiresIn * 1000 : undefined,
+                        authMethod: 'oidc',
+                        region: credentials[i].region || 'us-east-1'
+                    },
+                    subscription: {
+                        type: result.quota?.subscriptionType || 'Free',
+                        title: result.quota?.subscriptionTitle
+                    },
+                    usage: {
+                        current: result.quota?.currentUsage || 0,
+                        limit: result.quota?.totalLimit || 25,
+                        percentUsed: result.quota?.totalLimit > 0
+                            ? (result.quota?.currentUsage || 0) / result.quota.totalLimit
+                            : 0,
+                        lastUpdated: Date.now()
+                    },
+                    status: 'active',
+                    lastCheckedAt: Date.now()
+                }
+                
+                onSuccess(kiroAccount)
                 successCount++
             } catch (e: any) {
-                errors.push(`#${i + 1}: ${e.message || 'Failed'}`)
+                const errorMsg = e.message || e || 'Failed'
+                // 提供更友好的错误提示
+                let friendlyError = errorMsg
+                if (errorMsg.includes('Token 刷新失败')) {
+                    friendlyError = isEn 
+                        ? 'Token refresh failed. Please check if credentials are correct or expired.'
+                        : 'Token 刷新失败。请检查凭证是否正确或已过期。'
+                } else if (errorMsg.includes('缺少')) {
+                    friendlyError = isEn
+                        ? 'Missing required field. Please check JSON format.'
+                        : errorMsg
+                }
+                errors.push(`#${i + 1}: ${friendlyError}`)
             }
         }
 
@@ -139,11 +218,20 @@ export function TokenImportMethod({ onSuccess, onError, onClose }: AddMethodProp
                     className="w-full h-32 rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                     placeholder={importType === 'sso'
                         ? 'eyJhbGciOiJSUz...\neyJhbGciOiJSUz...'
-                        : '[\n  { "refreshToken": "...", "clientId": "...", "clientSecret": "..." }\n]'}
+                        : isEn 
+                            ? '{\n  "clientId": "amzn1.application...",\n  "clientSecret": "amzn1.oa2-cs...",\n  "refreshToken": "Atzr|..."\n}'
+                            : '{\n  "clientId": "amzn1.application...",\n  "clientSecret": "amzn1.oa2-cs...",\n  "refreshToken": "Atzr|..."\n}'}
                     value={tokenInput}
                     onChange={(e) => setTokenInput(e.target.value)}
                     disabled={status === 'processing'}
                 />
+                {importType === 'oidc' && (
+                    <p className="text-xs text-muted-foreground">
+                        {isEn 
+                            ? 'Required fields: clientId, clientSecret, refreshToken. Supports both camelCase and snake_case.'
+                            : '必需字段：clientId, clientSecret, refreshToken。支持驼峰和下划线命名。'}
+                    </p>
+                )}
             </div>
 
             <Button
