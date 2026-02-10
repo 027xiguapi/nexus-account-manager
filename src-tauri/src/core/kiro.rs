@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use reqwest::Client;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 // use std::collections::HashMap; // removed
 
 const OIDC_BASE_URL: &str = "https://oidc.us-east-1.amazonaws.com";
@@ -70,11 +70,9 @@ struct ErrorResponse {
     error_description: Option<String>,
 }
 
-fn get_client() -> Client {
-    Client::builder()
-        .timeout(Duration::from_secs(30))
-        .build()
-        .unwrap_or_default()
+// 获取全局 HTTP 客户端（使用通用工具）
+fn get_client() -> &'static Client {
+    crate::utils::http::get_client()
 }
 
 pub async fn register_client() -> Result<(String, String), String> {

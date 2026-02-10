@@ -1,8 +1,8 @@
 use crate::core::kiro as core_kiro;
 use tauri::{command, AppHandle, Manager};
 use serde::Serialize;
-use uuid::Uuid;
 use tauri_plugin_opener::OpenerExt;
+use crate::utils::common::{generate_account_id, extract_username_from_email};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -99,12 +99,12 @@ pub async fn kiro_poll_token(
         .map_err(|e| format!("Failed to fetch user info: {}", e))?;
 
     let email = quota_res.email.clone().unwrap_or("unknown@example.com".to_string());
-    let name = email.split('@').next().map(|s| s.to_string());
+    let name = extract_username_from_email(&email);
 
     Ok(KiroAccountData {
         completed: true,
         account: Some(KiroAccount {
-            id: Uuid::new_v4().to_string(),
+            id: generate_account_id(),
             email,
             name,
             access_token: token_res.access_token,
@@ -148,10 +148,10 @@ pub async fn kiro_import_sso_token(token: String) -> Result<KiroAccount, String>
         .map_err(|e| format!("Invalid SSO Token: {}", e))?;
 
     let email = quota_res.email.clone().unwrap_or("imported@example.com".to_string());
-    let name = email.split('@').next().map(|s| s.to_string());
+    let name = extract_username_from_email(&email);
 
     Ok(KiroAccount {
-        id: Uuid::new_v4().to_string(),
+        id: generate_account_id(),
         email,
         name,
         access_token: token,
@@ -220,12 +220,12 @@ pub async fn kiro_verify_credentials(credentials: serde_json::Value) -> Result<K
     };
 
     let email = quota_res.email.clone().unwrap_or("unknown@example.com".to_string());
-    let name = email.split('@').next().map(|s| s.to_string());
+    let name = extract_username_from_email(&email);
 
     log_info(&format!("[OIDC Import] Import successful for email: {}", email));
 
     Ok(KiroAccount {
-        id: Uuid::new_v4().to_string(),
+        id: generate_account_id(),
         email,
         name,
         access_token: token_res.access_token,

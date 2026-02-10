@@ -38,6 +38,9 @@ impl Colors {
 /// 最大日志消息长度（字符数）
 const MAX_LOG_LENGTH: usize = 500;
 
+/// 最大日志文件大小（字节）- 10MB
+const MAX_LOG_FILE_SIZE: u64 = 10 * 1024 * 1024;
+
 /// 全局日志文件路径
 static LOG_FILE_PATH: Lazy<Mutex<Option<PathBuf>>> = Lazy::new(|| Mutex::new(None));
 
@@ -94,8 +97,22 @@ fn get_level_color(level: &str) -> &'static str {
     }
 }
 
+/// 检查并轮转日志文件
+fn check_and_rotate_log(path: &PathBuf) {
+    if let Ok(metadata) = fs::metadata(path) {
+        if metadata.len() > MAX_LOG_FILE_SIZE {
+            // 轮转日志：app.log -> app.log.1
+            let rotated_path = path.with_extension("log.1");
+            let _ = fs::rename(path, rotated_path);
+        }
+    }
+}
+
 /// 写入日志到文件
 fn write_to_file(path: &PathBuf, level: &str, message: &str) {
+    // 检查文件大小并轮转
+    check_and_rotate_log(path);
+    
     if let Ok(mut file) = OpenOptions::new()
         .create(true)
         .append(true)

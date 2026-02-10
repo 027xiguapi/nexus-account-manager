@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use rusqlite::Connection;
 use base64::{engine::general_purpose, Engine as _};
 use crate::utils::logger::{log_info, log_warn};
+use crate::utils::common::{generate_account_id, calculate_expiry_timestamp};
 
 /// OAuth URL 响应
 #[derive(Serialize)]
@@ -65,7 +66,7 @@ pub async fn antigravity_complete_oauth(app: AppHandle, code: String) -> Result<
     
     // Create Account Data
     Ok(AntigravityAccountData {
-        id: uuid::Uuid::new_v4().to_string(),
+        id: generate_account_id(),
         email: user_info.email.clone(),
         name: user_info.get_display_name(),
         refresh_token: token_res.refresh_token.unwrap_or_default(),
@@ -88,7 +89,7 @@ pub async fn antigravity_add_by_token(refresh_token: String) -> Result<Antigravi
     let name = user_info.get_display_name();
     
     Ok(AntigravityAccountData {
-        id: uuid::Uuid::new_v4().to_string(),
+        id: generate_account_id(),
         email: user_info.email,
         name,
         refresh_token,
@@ -312,7 +313,7 @@ pub async fn antigravity_switch_account(
     }
     
     // 计算过期时间戳（毫秒）
-    let expiry_timestamp = chrono::Utc::now().timestamp_millis() + (token_res.expires_in * 1000);
+    let expiry_timestamp = calculate_expiry_timestamp(token_res.expires_in);
     
     // 注入 Token
     crate::utils::db_inject::inject_token(

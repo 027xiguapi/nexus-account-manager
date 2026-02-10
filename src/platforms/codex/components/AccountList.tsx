@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useDeferredValue } from 'react'
 import { AddAccountDialog } from './AddAccountDialog'
 import { ExportDialog } from '@/components/dialogs/ExportDialog'
 import { CodexAccountCard } from './CodexAccountCard'
@@ -18,6 +18,9 @@ export function CodexAccountList() {
   const [exportOpen, setExportOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [searchQuery, setSearchQuery] = useState('')
+  
+  // 性能优化：使用 useDeferredValue 延迟搜索查询，避免输入卡顿
+  const deferredSearchQuery = useDeferredValue(searchQuery)
 
   const codexAccounts = useMemo(
     () => accounts.filter((acc) => acc.platform === 'codex'),
@@ -25,15 +28,15 @@ export function CodexAccountList() {
   )
 
   const filteredAccounts = useMemo(() => {
-    if (!searchQuery.trim()) return codexAccounts
+    if (!deferredSearchQuery.trim()) return codexAccounts
 
-    const query = searchQuery.toLowerCase().trim()
+    const query = deferredSearchQuery.toLowerCase().trim()
     return codexAccounts.filter((account) => {
       const email = account.email?.toLowerCase() || ''
       const name = account.name?.toLowerCase() || ''
       return email.includes(query) || name.includes(query)
     })
-  }, [codexAccounts, searchQuery])
+  }, [codexAccounts, deferredSearchQuery])
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

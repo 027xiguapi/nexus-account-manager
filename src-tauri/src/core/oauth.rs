@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use reqwest::Client;
-use std::time::Duration;
 use crate::utils::logger::{log_info, log_warn};
 
 // Google OAuth configuration
@@ -51,21 +50,14 @@ impl UserInfo {
     }
 }
 
-/// Helper to get a HTTP client
-pub fn get_client() -> Client {
-    Client::builder()
-        .timeout(Duration::from_secs(15))
-        // .proxy(...) // If we had proxy settings
-        .build()
-        .unwrap_or_else(|_| Client::new())
+/// 获取全局 HTTP 客户端（使用通用工具）
+pub fn get_client() -> &'static Client {
+    crate::utils::http::get_client()
 }
 
-/// Helper for long timeout client
-pub fn get_long_client() -> Client {
-    Client::builder()
-        .timeout(Duration::from_secs(60))
-        .build()
-        .unwrap_or_else(|_| Client::new())
+/// 获取长超时客户端（使用通用工具）
+pub fn get_long_client() -> &'static Client {
+    crate::utils::http::get_client()
 }
 
 /// Generate OAuth authorization URL

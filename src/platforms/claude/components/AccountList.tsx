@@ -1,5 +1,5 @@
 import { logError } from '@/lib/logger'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useDeferredValue } from 'react'
 import { AddAccountDialog } from './AddAccountDialog'
 import { EditAccountDialog } from './EditAccountDialog'
 import { ExportDialog } from '@/components/dialogs/ExportDialog'
@@ -27,6 +27,9 @@ export function ClaudeAccountList() {
   const [editOpen, setEditOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [searchQuery, setSearchQuery] = useState('')
+  
+  // 性能优化：使用 useDeferredValue 延迟搜索查询，避免输入卡顿
+  const deferredSearchQuery = useDeferredValue(searchQuery)
 
   const claudeAccounts = useMemo(
     () => accounts.filter((acc): acc is ClaudeAccount => acc.platform === 'claude'),
@@ -34,15 +37,15 @@ export function ClaudeAccountList() {
   )
 
   const filteredAccounts = useMemo(() => {
-    if (!searchQuery.trim()) return claudeAccounts
+    if (!deferredSearchQuery.trim()) return claudeAccounts
 
-    const query = searchQuery.toLowerCase().trim()
+    const query = deferredSearchQuery.toLowerCase().trim()
     return claudeAccounts.filter((account) => {
       const email = account.email?.toLowerCase() || ''
       const name = account.name?.toLowerCase() || ''
       return email.includes(query) || name.includes(query)
     })
-  }, [claudeAccounts, searchQuery])
+  }, [claudeAccounts, deferredSearchQuery])
 
   const setSwitchAccount = async (account: Account) => {
     if (account.platform !== 'claude') return
