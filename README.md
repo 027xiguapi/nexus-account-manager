@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Nexus Account Manager](docs/images/logo.png)
+<img src="src-tauri/icons/icon.png" alt="Nexus Account Manager" width="120" />
 
 **Your AI Accounts, Unified**
 

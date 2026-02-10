@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="src-tauri/icons/icon.png" alt="Nexus Account Manager" width="120" />
+
 **统一管理你的 AI 账号**
 
 [English](./README.md) | [简体中文](./README_ZH.md)
