@@ -7,6 +7,7 @@ import { Settings } from './pages/Settings'
 import { ThemeManager } from './components/common/ThemeManager'
 import { useEffect } from 'react'
 import { usePlatformStore } from './stores/usePlatformStore'
+import { Toaster } from "@/components/ui/sonner"
 
 function App() {
   const loadAllAccounts = usePlatformStore((state) => state.loadAllAccounts)
@@ -30,6 +31,7 @@ function App() {
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
+        <Toaster />
       </BrowserRouter>
     </>
   )
