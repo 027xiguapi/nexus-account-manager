@@ -129,23 +129,6 @@
         "tokenPlaceholder": "Paste refresh tokens here...\n\nSupports:\n• Single token: 1//0abc...\n• Multiple lines\n• JSON array",
         "tokenHint": "Tokens starting with 1// will be auto-detected"
     },
-    "export": {
-        "title": "Export Accounts",
-        "format": {
-            "json": "JSON",
-            "jsonDesc": "Full data, can be imported",
-            "txt": "TXT",
-            "txtDesc": "Text format",
-            "csv": "CSV",
-            "csvDesc": "Excel compatible",
-            "clipboard": "Clipboard",
-            "clipboardDesc": "Copy to clipboard"
-        },
-        "includeCredentials": "Include credentials",
-        "includeCredentialsDesc": "Include tokens for full import",
-        "selected": "{{count}} selected",
-        "all": "All {{count}}"
-    },
     "details": {
         "title": "Account Details",
         "basicInfo": "Basic Information",
@@ -160,7 +143,7 @@
         "expires": "Expires",
         "quotaModels": "Quota Models"
     },
-    "edit": {
+    "settings": {
         "title": "Settings",
         "appearance": "Appearance",
         "theme": "Theme",

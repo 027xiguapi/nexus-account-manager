@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -16,9 +16,15 @@ import {
     Gem,
     Diamond,
     Circle,
-    Download
+    Download,
+    ArrowUpDown,
+    ArrowUp,
+    ArrowDown
 } from 'lucide-react'
 import { toast } from 'sonner'
+
+type SortField = 'email' | 'name' | 'createdAt' | 'lastUsed'
+type SortOrder = 'asc' | 'desc' | null
 
 // 订阅类型颜色
 const getSubscriptionStyle = (tier?: string) => {
@@ -56,6 +62,67 @@ export function AccountTable({
     const [copiedId, setCopiedId] = useState<string | null>(null)
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
     const [accountToDelete, setAccountToDelete] = useState<Account | null>(null)
+    const [sortField, setSortField] = useState<SortField | null>(null)
+    const [sortOrder, setSortOrder] = useState<SortOrder>(null)
+
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            // 循环切换：asc -> desc -> null
+            if (sortOrder === 'asc') {
+                setSortOrder('desc')
+            } else if (sortOrder === 'desc') {
+                setSortOrder(null)
+                setSortField(null)
+            }
+        } else {
+            setSortField(field)
+            setSortOrder('asc')
+        }
+    }
+
+    const sortedAccounts = useMemo(() => {
+        if (!sortField || !sortOrder) return accounts
+
+        return [...accounts].sort((a, b) => {
+            let aValue: string | number
+            let bValue: string | number
+
+            switch (sortField) {
+                case 'email':
+                    aValue = a.email.toLowerCase()
+                    bValue = b.email.toLowerCase()
+                    break
+                case 'name':
+                    aValue = (a.name || '').toLowerCase()
+                    bValue = (b.name || '').toLowerCase()
+                    break
+                case 'createdAt':
+                    aValue = a.createdAt
+                    bValue = b.createdAt
+                    break
+                case 'lastUsed':
+                    aValue = a.lastUsedAt || 0
+                    bValue = b.lastUsedAt || 0
+                    break
+                default:
+                    return 0
+            }
+
+            if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1
+            if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1
+            return 0
+        })
+    }, [accounts, sortField, sortOrder])
+
+    const getSortIcon = (field: SortField) => {
+        if (sortField !== field) {
+            return <ArrowUpDown className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-50 transition-opacity" />
+        }
+        if (sortOrder === 'asc') {
+            return <ArrowUp className="w-3 h-3 ml-1 text-primary" />
+        }
+        return <ArrowDown className="w-3 h-3 ml-1 text-primary" />
+    }
 
     const handleCopyEmail = async (email: string, id: string) => {
         await navigator.clipboard.writeText(email)
@@ -139,19 +206,43 @@ export function AccountTable({
                                 {t('common.status', { defaultValue: 'Status' })}
                             </th>
                             <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                {t('common.email', { defaultValue: 'Email' })}
+                                <button
+                                    onClick={() => handleSort('email')}
+                                    className="group flex items-center hover:text-foreground transition-colors cursor-pointer"
+                                >
+                                    {t('common.email', { defaultValue: 'Email' })}
+                                    {getSortIcon('email')}
+                                </button>
                             </th>
                             <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                {t('common.name', { defaultValue: 'Name' })}
+                                <button
+                                    onClick={() => handleSort('name')}
+                                    className="group flex items-center hover:text-foreground transition-colors cursor-pointer"
+                                >
+                                    {t('common.name', { defaultValue: 'Name' })}
+                                    {getSortIcon('name')}
+                                </button>
                             </th>
                             <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                 {t('common.type', { defaultValue: 'Type' })}
                             </th>
                             <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                {t('common.createdAt', { defaultValue: 'Created' })}
+                                <button
+                                    onClick={() => handleSort('createdAt')}
+                                    className="group flex items-center hover:text-foreground transition-colors cursor-pointer"
+                                >
+                                    {t('common.createdAt', { defaultValue: 'Created' })}
+                                    {getSortIcon('createdAt')}
+                                </button>
                             </th>
                             <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                {t('common.lastUsed', { defaultValue: 'Last Used' })}
+                                <button
+                                    onClick={() => handleSort('lastUsed')}
+                                    className="group flex items-center hover:text-foreground transition-colors cursor-pointer"
+                                >
+                                    {t('common.lastUsed', { defaultValue: 'Last Used' })}
+                                    {getSortIcon('lastUsed')}
+                                </button>
                             </th>
                             <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                 {t('common.actions', { defaultValue: 'Actions' })}
@@ -159,7 +250,7 @@ export function AccountTable({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40">
-                        {accounts.map((account, index) => {
+                        {sortedAccounts.map((account, index) => {
                             const { subscriptionTier, platformName } = getAccountInfo(account)
                             
                             return (

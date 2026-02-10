@@ -4,11 +4,12 @@ import { EditAccountDialog } from './EditAccountDialog'
 import { ExportDialog } from '@/components/dialogs/ExportDialog'
 import { AccountCard } from '@/components/accounts/AccountCard'
 import { AccountTable } from '@/components/accounts/AccountTable'
+import { AccountSearch } from '@/components/accounts/AccountSearch'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import { useTranslation } from 'react-i18next'
-import { Download, LayoutGrid, List } from 'lucide-react'
+import { Download, LayoutGrid, List, Search } from 'lucide-react'
 import { invoke } from '@tauri-apps/api/core'
 import { toast } from 'sonner'
 import type { Account, ClaudeAccount } from '@/types/account'
@@ -24,11 +25,23 @@ export function ClaudeAccountList() {
   const [editAccount, setEditAccount] = useState<ClaudeAccount | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const claudeAccounts = useMemo(
     () => accounts.filter((acc): acc is ClaudeAccount => acc.platform === 'claude'),
     [accounts]
   )
+
+  const filteredAccounts = useMemo(() => {
+    if (!searchQuery.trim()) return claudeAccounts
+
+    const query = searchQuery.toLowerCase().trim()
+    return claudeAccounts.filter((account) => {
+      const email = account.email?.toLowerCase() || ''
+      const name = account.name?.toLowerCase() || ''
+      return email.includes(query) || name.includes(query)
+    })
+  }, [claudeAccounts, searchQuery])
 
   const setSwitchAccount = async (account: Account) => {
     if (account.platform !== 'claude') return
@@ -99,6 +112,12 @@ export function ClaudeAccountList() {
         <div className="flex items-center gap-3">
           {claudeAccounts.length > 0 && (
             <>
+              <AccountSearch
+                value={searchQuery}
+                onChange={setSearchQuery}
+                resultCount={filteredAccounts.length}
+                className="w-64"
+              />
               <div className="flex items-center gap-1 bg-background/50 backdrop-blur-sm border border-white/10 rounded-lg p-1">
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'ghost'}
@@ -147,11 +166,21 @@ export function ClaudeAccountList() {
             <AddAccountDialog />
           </CardContent>
         </Card>
+      ) : filteredAccounts.length === 0 ? (
+        <Card className="bg-card/30 border-dashed border-2 border-muted">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <p className="text-lg font-medium mb-2">{t('common.noResults', 'No results found')}</p>
+            <p className="text-sm text-muted-foreground">
+              {t('common.tryDifferentSearch', 'Try a different search term')}
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <>
           {viewMode === 'grid' ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {claudeAccounts.map((account) => (
+              {filteredAccounts.map((account) => (
                 <AccountCard
                   key={account.id}
                   account={account}
@@ -163,7 +192,7 @@ export function ClaudeAccountList() {
             </div>
           ) : (
             <AccountTable
-              accounts={claudeAccounts}
+              accounts={filteredAccounts}
               onSwitch={setSwitchAccount}
               onEdit={setEdit}
               isSwitching={isSwitching}
