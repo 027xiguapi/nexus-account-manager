@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress'
 import { QuotaItem } from '@/components/accounts/QuotaItem'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
-import type { Account, AntigravityAccount, KiroAccount, ClaudeAccount, CodexAccount, GeminiAccount } from '@/types/account'
+import type { Account, AntigravityAccount, KiroAccount } from '@/types/account'
 import {
     X, Copy, Check, Mail, User, Shield, Clock,
     Cpu, Network, CreditCard, AlertTriangle, Gem, Diamond
@@ -26,14 +26,8 @@ export function AccountDetailsDialog({ account, open, onClose }: AccountDetailsD
 
     const isAntigravity = account.platform === 'antigravity'
     const isKiro = account.platform === 'kiro'
-    const isClaude = account.platform === 'claude'
-    const isCodex = account.platform === 'codex'
-    const isGemini = account.platform === 'gemini'
     const antigravity = isAntigravity ? account as AntigravityAccount : null
     const kiro = isKiro ? account as KiroAccount : null
-    const claude = isClaude ? account as ClaudeAccount : null
-    const codex = isCodex ? account as CodexAccount : null
-    const gemini = isGemini ? account as GeminiAccount : null
 
     const handleCopy = async (value: string, field: string) => {
         await navigator.clipboard.writeText(value)
@@ -127,7 +121,7 @@ export function AccountDetailsDialog({ account, open, onClose }: AccountDetailsD
                                 {t('accounts.banned')}
                             </Badge>
                         )}
-                        <Badge variant="outline" className="bg-background/50">{isAntigravity ? 'Antigravity' : kiro?.idp || 'Kiro'}</Badge>
+                        <Badge variant="outline" className="bg-background/50">{isAntigravity ? 'Antigravity' : kiro?.idp || account.platform}</Badge>
                     </div>
 
                     {/* Usage Progress */}

@@ -43,7 +43,7 @@ export function JsonMethod({ onSuccess, onError, onClose }: AddMethodProps) {
     }
 
     try {
-      const parsed = JSON.parse(text)
+      JSON.parse(text)
       setJsonValid(true)
       return true
     } catch {

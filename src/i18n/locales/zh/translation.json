@@ -5,6 +5,7 @@
     "nav": {
         "dashboard": "仪表盘",
         "accounts": "账号管理",
+        "machineId": "机器码管理",
         "settings": "设置"
     },
     "dashboard": {
@@ -70,7 +71,11 @@
         "loading": "加载中...",
         "success": "成功",
         "error": "错误",
-        "warning": "警告"
+        "warning": "警告",
+        "apply": "应用",
+        "actions": "操作",
+        "gridView": "网格视图",
+        "listView": "列表视图"
     },
     "accounts": {
         "title": "账号管理",
@@ -181,5 +186,28 @@
         "copied": "已复制",
         "copy": "复制",
         "action": "导出"
+    },
+    "machineId": {
+        "title": "机器码管理",
+        "description": "管理设备标识符和账号绑定关系",
+        "infoTitle": "什么是机器码？",
+        "infoDescription": "机器码是用于防止账号关联封禁的唯一设备标识符。每个账号可以绑定到特定的机器码，系统会在切换账号时自动切换机器码。",
+        "current": "当前机器码",
+        "currentDescription": "系统当前使用的机器码",
+        "loading": "加载中...",
+        "generate": "生成新机器码",
+        "newMachineId": "新机器码",
+        "warning": "警告",
+        "warningDescription": "更改机器码将影响所有账号。请确保您了解其影响后再继续操作。",
+        "bindings": "账号绑定",
+        "bindingsDescription": "查看和管理所有账号的机器码绑定关系",
+        "noBindings": "暂无账号绑定",
+        "noBindingsHint": "在账号设置中绑定账号到机器码",
+        "account": "账号",
+        "platform": "平台",
+        "machineId": "机器码",
+        "unbindTitle": "解绑机器码",
+        "unbindDescription": "确定要解绑此账号的机器码吗？",
+        "unbind": "解绑"
     }
 }

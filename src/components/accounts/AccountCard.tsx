@@ -8,7 +8,7 @@ import { QuotaItem } from '@/components/accounts/QuotaItem'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/usePlatformStore'
-import type { AntigravityAccount, KiroAccount, ClaudeAccount, CodexAccount, GeminiAccount, Account } from '@/types/account'
+import type { AntigravityAccount, KiroAccount, Account } from '@/types/account'
 import {
     RefreshCw,
     Trash2,
@@ -68,17 +68,11 @@ export const AccountCard = memo(function AccountCard({
     // 判断平台
     const isAntigravity = account.platform === 'antigravity'
     const isKiro = account.platform === 'kiro'
-    const isClaude = account.platform === 'claude'
-    const isCodex = account.platform === 'codex'
-    const isGemini = account.platform === 'gemini'
     const antigravity = isAntigravity ? account as AntigravityAccount : null
     const kiro = isKiro ? account as KiroAccount : null
-    const claude = isClaude ? account as ClaudeAccount : null
-    const codex = isCodex ? account as CodexAccount : null
-    const gemini = isGemini ? account as GeminiAccount : null
 
     // 获取订阅信息
-    const subscriptionTier = antigravity?.quota?.subscription_tier || kiro?.subscription?.type || (isClaude || isCodex || isGemini ? 'API' : 'Free')
+    const subscriptionTier = antigravity?.quota?.subscription_tier || kiro?.subscription?.type || 'Free'
     const isForbidden = antigravity?.is_forbidden || antigravity?.quota?.is_forbidden
 
     // 获取使用率
@@ -86,7 +80,7 @@ export const AccountCard = memo(function AccountCard({
         ? (antigravity?.quota?.models?.[0]?.percentage || 0)
         : isKiro
             ? ((kiro?.usage?.percentUsed || 0) * 100)
-            : 0 // Claude/Codex/Gemini 暂不显示使用率
+            : 0
 
     const handleCopyEmail = async () => {
         await navigator.clipboard.writeText(account.email)
@@ -189,7 +183,7 @@ export const AccountCard = memo(function AccountCard({
 
                         {/* Platform Badge */}
                         <Badge variant="outline" className="text-[10px] h-5 px-2 text-muted-foreground border-border bg-muted/30">
-                            {isAntigravity ? 'Antigravity' : isKiro ? (kiro?.idp || 'Kiro') : isClaude ? 'Claude' : isCodex ? 'Codex' : 'Gemini'}
+                            {isAntigravity ? 'Antigravity' : isKiro ? (kiro?.idp || 'Kiro') : account.platform}
                         </Badge>
                     </div>
 

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Users, Settings, Moon, Sun, Globe } from 'lucide-react'
+import { Home, Users, Settings, Moon, Sun, Globe, Fingerprint } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/hooks/useTheme'
@@ -12,6 +12,7 @@ export function TopNav() {
   const navigation = [
     { name: 'nav.dashboard', href: '/', icon: Home },
     { name: 'nav.accounts', href: '/accounts', icon: Users },
+    { name: 'nav.machineId', href: '/machine-id', icon: Fingerprint },
     { name: 'nav.settings', href: '/settings', icon: Settings },
   ]
 

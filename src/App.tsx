@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { MainLayout } from './components/layout/MainLayout'
 import { Dashboard } from './pages/Dashboard'
 import { Accounts } from './pages/Accounts'
+import { MachineId } from './pages/MachineId'
 import { Settings } from './pages/Settings'
 import { ThemeManager } from './components/common/ThemeManager'
 import { useEffect } from 'react'
@@ -25,6 +26,7 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="accounts" element={<Accounts />} />
+            <Route path="machine-id" element={<MachineId />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>

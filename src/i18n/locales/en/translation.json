@@ -5,6 +5,7 @@
     "nav": {
         "dashboard": "Dashboard",
         "accounts": "Accounts",
+        "machineId": "Machine ID",
         "settings": "Settings"
     },
     "dashboard": {
@@ -70,7 +71,11 @@
         "loading": "Loading...",
         "success": "Success",
         "error": "Error",
-        "warning": "Warning"
+        "warning": "Warning",
+        "apply": "Apply",
+        "actions": "Actions",
+        "gridView": "Grid View",
+        "listView": "List View"
     },
     "accounts": {
         "title": "Accounts",
@@ -181,5 +186,28 @@
         "copied": "Copied",
         "copy": "Copy",
         "action": "Export"
+    },
+    "machineId": {
+        "title": "Machine ID Management",
+        "description": "Manage device identifiers and account bindings",
+        "infoTitle": "What is Machine ID?",
+        "infoDescription": "Machine ID is a unique device identifier used to prevent account association bans. Each account can be bound to a specific machine ID, and the system will automatically switch machine IDs when switching accounts.",
+        "current": "Current Machine ID",
+        "currentDescription": "The machine ID currently in use by the system",
+        "loading": "Loading...",
+        "generate": "Generate New Machine ID",
+        "newMachineId": "New Machine ID",
+        "warning": "Warning",
+        "warningDescription": "Changing the machine ID will affect all accounts. Make sure you understand the implications before proceeding.",
+        "bindings": "Account Bindings",
+        "bindingsDescription": "View and manage machine ID bindings for all accounts",
+        "noBindings": "No account bindings yet",
+        "noBindingsHint": "Bind accounts to machine IDs in account settings",
+        "account": "Account",
+        "platform": "Platform",
+        "machineId": "Machine ID",
+        "unbindTitle": "Unbind Machine ID",
+        "unbindDescription": "Are you sure you want to unbind the machine ID from this account?",
+        "unbind": "Unbind"
     }
 }
