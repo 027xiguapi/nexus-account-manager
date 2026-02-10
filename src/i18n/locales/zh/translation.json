@@ -114,23 +114,6 @@
         "tokenPlaceholder": "在此粘贴刷新令牌...\n\n支持：\n• 单个令牌: 1//0abc...\n• 多行粘贴\n• JSON 数组",
         "tokenHint": "以 1// 开头的令牌将被自动识别"
     },
-    "export": {
-        "title": "导出账号",
-        "format": {
-            "json": "JSON",
-            "jsonDesc": "完整数据，可用于导入",
-            "txt": "TXT",
-            "txtDesc": "纯文本格式",
-            "csv": "CSV",
-            "csvDesc": "Excel 兼容格式",
-            "clipboard": "剪贴板",
-            "clipboardDesc": "复制到剪贴板"
-        },
-        "includeCredentials": "包含凭证信息",
-        "includeCredentialsDesc": "包含 Token 等敏感数据",
-        "selected": "已选择 {{count}} 个",
-        "all": "全部 {{count}} 个"
-    },
     "details": {
         "title": "账号详情",
         "basicInfo": "基本信息",
@@ -145,7 +128,7 @@
         "expires": "到期时间",
         "quotaModels": "配额模型"
     },
-    "edit": {
+    "settings": {
         "title": "设置",
         "appearance": "外观",
         "theme": "主题",
