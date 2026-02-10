@@ -5,6 +5,7 @@ import { QuotaItem } from '@/components/accounts/QuotaItem'
 import { AntigravityAccountDetailsDialog } from './AntigravityAccountDetailsDialog'
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog'
 import { cn, getSubscriptionDisplayName, getSubscriptionStyle } from '@/lib/utils'
+import { toast } from '@/lib/toast'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import { AntigravityAccountService } from '../services/AntigravityAccountService'
@@ -40,8 +41,10 @@ export const AntigravityAccountCard = memo(function AntigravityAccountCard({
     setIsRefreshing(true)
     try {
       await AntigravityAccountService.refreshAccount(account)
-    } catch (e) {
+      toast.success(t('accounts.refreshSuccess'), account.email)
+    } catch (e: any) {
       console.error('Failed to refresh:', e)
+      toast.error(t('accounts.refreshFailed'), e.message || t('common.unknownError'))
     } finally {
       setIsRefreshing(false)
     }
@@ -50,13 +53,20 @@ export const AntigravityAccountCard = memo(function AntigravityAccountCard({
   const handleSwitch = async () => {
     try {
       await AntigravityAccountService.switchAccount(account.id)
-    } catch (e) {
+      toast.success(t('accounts.switchSuccess'), account.email)
+    } catch (e: any) {
       console.error('Failed to switch account:', e)
+      toast.error(t('accounts.switchFailed'), e.message || t('common.unknownError'))
     }
   }
 
   const handleDelete = async () => {
-    deleteAccount(account.id)
+    try {
+      await deleteAccount(account.id)
+      toast.success(t('accounts.deleteSuccess'), account.email)
+    } catch (e: any) {
+      toast.error(t('accounts.deleteFailed'), e.message || t('common.unknownError'))
+    }
   }
 
   return (

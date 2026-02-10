@@ -121,7 +121,8 @@
         "status": "Status",
         "type": "Type",
         "title": "Title",
-        "region": "Region"
+        "region": "Region",
+        "unknownError": "Unknown error"
     },
     "accounts": {
         "title": "Accounts",
@@ -158,6 +159,18 @@
         "expiresAt": "Expires At",
         "timestamps": "Timestamps",
         "createdAt": "Created At",
+        "refreshSuccess": "Refresh successful",
+        "refreshFailed": "Refresh failed",
+        "switchSuccess": "Switch successful",
+        "switchFailed": "Switch failed",
+        "deleteSuccess": "Delete successful",
+        "deleteFailed": "Delete failed",
+        "addSuccess": "Add successful",
+        "addFailed": "Add failed",
+        "copySuccess": "Copy successful",
+        "copyFailed": "Copy failed",
+        "exportSuccess": "Export successful",
+        "exportFailed": "Export failed",
         "lastUsedAt": "Last Used At",
         "lastCheckedAt": "Last Checked At"
     },

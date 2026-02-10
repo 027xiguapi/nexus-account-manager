@@ -121,7 +121,8 @@
         "status": "状态",
         "type": "类型",
         "title": "标题",
-        "region": "区域"
+        "region": "区域",
+        "unknownError": "未知错误"
     },
     "accounts": {
         "title": "账号管理",
@@ -158,6 +159,18 @@
         "expiresAt": "过期时间",
         "timestamps": "时间戳",
         "createdAt": "创建时间",
+        "refreshSuccess": "刷新成功",
+        "refreshFailed": "刷新失败",
+        "switchSuccess": "切换成功",
+        "switchFailed": "切换失败",
+        "deleteSuccess": "删除成功",
+        "deleteFailed": "删除失败",
+        "addSuccess": "添加成功",
+        "addFailed": "添加失败",
+        "copySuccess": "复制成功",
+        "copyFailed": "复制失败",
+        "exportSuccess": "导出成功",
+        "exportFailed": "导出失败",
         "lastUsedAt": "最后使用",
         "lastCheckedAt": "最后检查"
     },

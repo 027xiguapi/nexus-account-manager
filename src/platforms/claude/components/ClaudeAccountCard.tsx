@@ -3,6 +3,7 @@ import { AccountCard } from '@/components/accounts/AccountCardBase'
 import { Badge } from '@/components/ui/badge'
 import { ClaudeAccountDetailsDialog } from './ClaudeAccountDetailsDialog'
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog'
+import { toast } from '@/lib/toast'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import type { ClaudeAccount } from '@/types/account'
@@ -26,10 +27,16 @@ export const ClaudeAccountCard = memo(function ClaudeAccountCard({
 
   const handleSwitch = () => {
     setActiveAccount(account)
+    toast.success(t('accounts.switchSuccess'), account.email)
   }
 
   const handleDelete = async () => {
-    deleteAccount(account.id)
+    try {
+      await deleteAccount(account.id)
+      toast.success(t('accounts.deleteSuccess'), account.email)
+    } catch (e: any) {
+      toast.error(t('accounts.deleteFailed'), e.message || t('common.unknownError'))
+    }
   }
 
   return (

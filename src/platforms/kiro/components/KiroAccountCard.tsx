@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress'
 import { KiroAccountDetailsDialog } from './KiroAccountDetailsDialog'
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog'
 import { cn } from '@/lib/utils'
+import { toast } from '@/lib/toast'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import { KiroAccountService } from '../services/KiroAccountService'
@@ -48,9 +49,15 @@ export const KiroAccountCard = memo(function KiroAccountCard({
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
-      await KiroAccountService.refreshToken(account)
-    } catch (e) {
+      const result = await KiroAccountService.refreshToken(account)
+      if (result.success) {
+        toast.success(t('accounts.refreshSuccess'), account.email)
+      } else {
+        toast.error(t('accounts.refreshFailed'), result.error || t('common.unknownError'))
+      }
+    } catch (e: any) {
       console.error('Failed to refresh:', e)
+      toast.error(t('accounts.refreshFailed'), e.message || t('common.unknownError'))
     } finally {
       setIsRefreshing(false)
     }
@@ -59,13 +66,20 @@ export const KiroAccountCard = memo(function KiroAccountCard({
   const handleSwitch = async () => {
     try {
       await KiroAccountService.switchAccount(account.id)
-    } catch (e) {
+      toast.success(t('accounts.switchSuccess'), account.email)
+    } catch (e: any) {
       console.error('Failed to switch account:', e)
+      toast.error(t('accounts.switchFailed'), e.message || t('common.unknownError'))
     }
   }
 
   const handleDelete = async () => {
-    deleteAccount(account.id)
+    try {
+      await deleteAccount(account.id)
+      toast.success(t('accounts.deleteSuccess'), account.email)
+    } catch (e: any) {
+      toast.error(t('accounts.deleteFailed'), e.message || t('common.unknownError'))
+    }
   }
 
   return (

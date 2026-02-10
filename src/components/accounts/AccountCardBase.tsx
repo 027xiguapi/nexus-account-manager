@@ -6,6 +6,7 @@ import { memo, useState, ReactNode } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { toast } from '@/lib/toast'
 import { useTranslation } from 'react-i18next'
 import {
   RefreshCw,
@@ -96,6 +97,7 @@ export const AccountCard = memo(function AccountCard({
       await navigator.clipboard.writeText(email)
     }
     setCopied(true)
+    toast.success(t('accounts.copySuccess'), email)
     setTimeout(() => setCopied(false), 1500)
   }
 
@@ -107,7 +109,7 @@ export const AccountCard = memo(function AccountCard({
         'relative transition-all duration-300 cursor-pointer overflow-hidden group',
         'border-border/60 bg-card shadow-sm',
         'hover:shadow-lg hover:-translate-y-1 hover:border-primary/20',
-        isActive && 'ring-2 ring-primary shadow-lg shadow-primary/10 bg-primary/5',
+        isActive && 'ring-2 ring-primary/50 shadow-lg shadow-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/30',
         hasWarning && 'border-destructive/30 bg-destructive/5',
         className
       )}
@@ -119,9 +121,12 @@ export const AccountCard = memo(function AccountCard({
         </div>
       )}
 
-      {/* 激活指示器 */}
+      {/* 激活指示器 - 顶部光晕效果 */}
       {isActive && (
-        <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+        <>
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+        </>
       )}
 
       <CardContent className={cn(
