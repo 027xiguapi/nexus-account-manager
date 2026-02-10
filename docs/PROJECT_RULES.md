@@ -24,7 +24,11 @@ nexus-account-manager/
 │   │   ├── ui/                  # 基础 UI 组件（Radix UI + shadcn/ui）
 │   │   ├── layout/              # 布局组件
 │   │   ├── common/              # 通用组件（如 ThemeManager）
-│   │   ├── accounts/            # 账户相关组件
+│   │   ├── accounts/            # 账户相关通用组件
+│   │   │   ├── AccountCardBase.tsx          # 账户卡片基础组件
+│   │   │   ├── AccountDetailsDialogBase.tsx # 详情对话框基础组件
+│   │   │   ├── AccountSearch.tsx            # 账户搜索组件
+│   │   │   └── AccountTable.tsx             # 账户表格组件
 │   │   ├── dashboard/           # 仪表盘组件
 │   │   └── dialogs/             # 对话框组件
 │   │
@@ -170,14 +174,16 @@ nexus-account-manager/
 ```typescript
 src/platforms/[platform-name]/
 ├── components/
-│   ├── AccountList.tsx          # 必需：账户列表组件
-│   └── AddAccountDialog.tsx     # 可选：添加账户对话框
+│   ├── AccountList.tsx                    # 必需：账户列表组件
+│   ├── [Platform]AccountCard.tsx         # 必需：平台专属账户卡片（PascalCase）
+│   ├── [Platform]AccountDetailsDialog.tsx # 必需：平台专属详情对话框（PascalCase）
+│   └── AddAccountDialog.tsx               # 可选：添加账户对话框
 ├── methods/
-│   ├── index.ts                 # 必需：导出所有认证方法
-│   └── [MethodName]Method.tsx   # 认证方法组件
-├── services/                     # 可选：平台特定服务
+│   ├── index.ts                           # 必需：导出所有认证方法
+│   └── [MethodName]Method.tsx             # 认证方法组件
+├── services/                               # 可选：平台特定服务
 │   └── [Platform]Service.ts
-└── index.ts                      # 必需：平台配置导出
+└── index.ts                                # 必需：平台配置导出
 ```
 
 **平台配置必须包含**：
@@ -188,6 +194,369 @@ src/platforms/[platform-name]/
 - `description`: 描述
 - `AccountList`: 账户列表组件
 - `features`: 功能特性配置
+
+### 2.3.1 账户卡片组件规范
+
+每个平台必须实现自己的账户卡片和详情对话框组件，使用通用基础组件进行封装。
+
+#### 文件命名规范
+
+**必须使用 PascalCase 命名**：
+- ✅ `KiroAccountCard.tsx`
+- ✅ `AntigravityAccountDetailsDialog.tsx`
+- ❌ `kiro-account-card.tsx`
+- ❌ `antigravity_account_details_dialog.tsx`
+
+**文件位置**：
+- 基础组件：`src/components/accounts/AccountCardBase.tsx`
+- 平台组件：`src/platforms/[platform]/components/[Platform]AccountCard.tsx`
+
+#### 账户卡片 (`[Platform]AccountCard.tsx`)
+
+**必须使用**: `src/components/accounts/AccountCardBase.tsx` 作为基础组件
+
+**实现要求**:
+```typescript
+import { memo, useState } from 'react'
+import { AccountCard } from '@/components/accounts/AccountCardBase'
+import { Badge } from '@/components/ui/badge'
+import { Account } from '@/types/account'
+
+interface KiroAccountCardProps {
+  account: Account
+  onExport?: () => void
+}
+
+export const KiroAccountCard = memo(function KiroAccountCard({ 
+  account, 
+  onExport 
+}: KiroAccountCardProps) {
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const handleSwitch = async () => {
+    // 切换账号逻辑
+  }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      // 刷新账号逻辑
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  return (
+    <>
+      <AccountCard
+        id={account.id}
+        email={account.email}
+        name={account.name}
+        isActive={account.isActive}
+        
+        // 自定义状态徽章（右上角）
+        statusBadge={
+          account.subscription && (
+            <Badge variant="secondary">
+              {account.subscription}
+            </Badge>
+          )
+        }
+        
+        // 自定义警告标识（如封禁、错误状态）
+        warningBadge={
+          account.status === 'banned' ? (
+            <Badge variant="destructive" className="rounded-none rounded-bl-lg">
+              BANNED
+            </Badge>
+          ) : undefined
+        }
+        
+        // 自定义徽章区域（订阅类型、平台标识等）
+        badges={
+          <>
+            <Badge variant="outline">Pro</Badge>
+            <Badge variant="outline">US Region</Badge>
+          </>
+        }
+        
+        // 自定义内容区域（配额、使用情况等）
+        content={
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">使用量</span>
+              <span className="font-medium">1.2K / 10K</span>
+            </div>
+            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="h-full bg-primary w-[12%]" />
+            </div>
+          </div>
+        }
+        
+        // 标准操作
+        onSwitch={handleSwitch}
+        onRefresh={handleRefresh}
+        onExport={onExport}
+        onDetails={() => setDetailsOpen(true)}
+        onDelete={() => setDeleteConfirmOpen(true)}
+        
+        isRefreshing={isRefreshing}
+      />
+      
+      {/* 详情对话框 */}
+      <KiroAccountDetailsDialog
+        account={account}
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+      />
+      
+      {/* 删除确认对话框 */}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="删除账号"
+        description="确定要删除此账号吗？"
+        onConfirm={handleDelete}
+      />
+    </>
+  )
+})
+```
+
+**AccountCard 基础组件 Props**:
+- `id`: 账号 ID（必需，用于 key 等场景）
+- `email`: 邮箱（必需）
+- `name`: 名称（可选）
+- `isActive`: 是否激活（可选）
+- `statusBadge`: 状态徽章（头部右侧）
+- `warningBadge`: 警告标识（右上角，如 BANNED）
+- `badges`: 徽章区域（订阅类型、平台标识等）
+- `content`: 主要内容区域（配额、使用情况等）
+- `footer`: 底部自定义区域
+- `onSwitch`, `onRefresh`, `onCopy`, `onExport`, `onDetails`, `onDelete`: 标准操作
+- `customActions`: 额外的自定义操作
+- `isRefreshing`, `isSwitching`: 加载状态
+- `variant`: 卡片变体（`default` | `compact` | `detailed`）
+
+**设计原则**:
+- ✅ 使用 `AccountCard` 基础组件，通过插槽自定义内容
+- ✅ 平台特定数据通过 `badges` 和 `content` 插槽渲染
+- ✅ 保持统一的交互逻辑（hover 显示操作、激活状态等）
+- ✅ 保留 `id` 属性，可能用于 React key 或其他场景
+- ❌ 不要从头实现卡片布局
+- ❌ 不要修改基础组件的核心交互逻辑
+
+#### 详情对话框 (`[Platform]AccountDetailsDialog.tsx`)
+
+**必须使用**: `src/components/accounts/AccountDetailsDialogBase.tsx` 作为基础组件
+
+**实现要求**:
+```typescript
+import { 
+  AccountDetailsDialog, 
+  DetailRow, 
+  DetailGrid 
+} from '@/components/accounts/AccountDetailsDialogBase'
+import { User, Award, Key, Globe } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Account } from '@/types/account'
+
+interface KiroAccountDetailsDialogProps {
+  account: Account
+  open: boolean
+  onClose: () => void
+}
+
+export function KiroAccountDetailsDialog({ 
+  account, 
+  open, 
+  onClose 
+}: KiroAccountDetailsDialogProps) {
+  const sections = [
+    {
+      title: '基础信息',
+      icon: <User className="h-4 w-4" />,
+      content: (
+        <DetailGrid columns={2}>
+          <DetailRow 
+            label="邮箱" 
+            value={account.email} 
+            copyable 
+          />
+          <DetailRow 
+            label="名称" 
+            value={account.name || '-'} 
+          />
+          <DetailRow 
+            label="账号 ID" 
+            value={account.id} 
+            copyable 
+          />
+          <DetailRow 
+            label="状态" 
+            value={
+              <Badge variant={account.isActive ? 'default' : 'secondary'}>
+                {account.isActive ? '激活' : '未激活'}
+              </Badge>
+            } 
+          />
+        </DetailGrid>
+      )
+    },
+    {
+      title: '订阅信息',
+      icon: <Award className="h-4 w-4" />,
+      content: (
+        <DetailGrid columns={1}>
+          <DetailRow 
+            label="订阅类型" 
+            value={account.subscription || '免费版'} 
+          />
+          <DetailRow 
+            label="到期时间" 
+            value={account.expiresAt || '永久'} 
+          />
+        </DetailGrid>
+      )
+    },
+    {
+      title: '认证信息',
+      icon: <Key className="h-4 w-4" />,
+      content: (
+        <DetailGrid columns={1}>
+          <DetailRow 
+            label="Access Token" 
+            value={account.credentials?.accessToken || '-'} 
+            copyable 
+          />
+          <DetailRow 
+            label="认证方式" 
+            value={account.credentials?.authMethod || '-'} 
+          />
+        </DetailGrid>
+      )
+    },
+    {
+      title: '区域设置',
+      icon: <Globe className="h-4 w-4" />,
+      content: (
+        <DetailRow 
+          label="服务区域" 
+          value={account.credentials?.region || 'US'} 
+        />
+      )
+    }
+  ]
+  
+  return (
+    <AccountDetailsDialog
+      open={open}
+      onClose={onClose}
+      title={account.name || account.email}
+      subtitle={account.email}
+      badges={
+        <>
+          <Badge variant="outline">{account.subscription || '免费版'}</Badge>
+          {account.isActive && <Badge>当前激活</Badge>}
+        </>
+      }
+      sections={sections}
+      maxWidth="xl"
+    />
+  )
+}
+```
+
+**辅助组件**:
+- `DetailRow`: 单行详情展示，支持图标、复制功能
+  - `label`: 标签文本
+  - `value`: 值（支持 string 或 ReactNode）
+  - `icon`: 图标（可选）
+  - `copyable`: 是否可复制（可选）
+- `DetailGrid`: 网格布局，支持 1/2/3 列
+  - `columns`: 列数（1 | 2 | 3）
+  - `children`: 子元素（通常是 DetailRow）
+
+**设计原则**:
+- ✅ 使用分组 `sections` 组织信息
+- ✅ 使用 `DetailRow` 和 `DetailGrid` 快速构建布局
+- ✅ 平台特定信息通过自定义 `content` 渲染
+- ✅ 敏感信息（Token、密钥）使用 `copyable` 属性
+- ❌ 不要使用 `createPortal` 自己实现对话框
+- ❌ 不要重复实现复制、关闭等通用逻辑
+
+#### 禁止的实现方式
+
+❌ **错误示例 1**: 从头实现卡片
+```typescript
+// 不要这样做！
+export function MyAccountCard() {
+  return (
+    <Card>
+      <CardContent>
+        {/* 完全自定义的布局 */}
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+❌ **错误示例 2**: 使用 createPortal 实现对话框
+```typescript
+// 不要这样做！
+export function MyDetailsDialog() {
+  return createPortal(
+    <div className="fixed inset-0">
+      {/* 自己实现的对话框 */}
+    </div>,
+    document.body
+  )
+}
+```
+
+❌ **错误示例 3**: 使用 kebab-case 命名
+```typescript
+// 不要这样做！
+// 文件名: kiro-account-card.tsx
+export function KiroAccountCard() { ... }
+```
+
+✅ **正确示例**: 使用基础组件 + 自定义内容 + PascalCase 命名
+```typescript
+// 这样做！
+// 文件名: KiroAccountCard.tsx
+import { AccountCard } from '@/components/accounts/AccountCardBase'
+
+export const KiroAccountCard = memo(function KiroAccountCard({ account }) {
+  return (
+    <AccountCard
+      id={account.id}
+      email={account.email}
+      name={account.name}
+      badges={<MyCustomBadges />}
+      content={<MyCustomContent />}
+      onSwitch={handleSwitch}
+      onRefresh={handleRefresh}
+    />
+  )
+})
+
+// 文件名: KiroAccountDetailsDialog.tsx
+import { AccountDetailsDialog } from '@/components/accounts/AccountDetailsDialogBase'
+
+export function KiroAccountDetailsDialog({ account, open, onClose }) {
+  return (
+    <AccountDetailsDialog
+      open={open}
+      onClose={onClose}
+      title={account.name}
+      sections={mySections}
+    />
+  )
+}
+```
 
 ### 2.4 Tauri 命令规则
 
@@ -412,6 +781,99 @@ function MyComponent() {
 
 ---
 
-**最后更新**: 2026-02-09  
-**版本**: 2.0  
+**最后更新**: 2026-02-10  
+**版本**: 2.2  
 **维护者**: adnaan
+
+---
+
+## 八、组件复用规范
+
+### 8.1 通用 UI 组件
+
+**位置**: `src/components/ui/` 和 `src/components/accounts/`
+
+所有通用 UI 组件必须放在这些目录：
+- `src/components/ui/`: 基础 UI 组件（Button, Card, Badge 等）
+- `src/components/accounts/`: 账户相关通用组件（AccountCardBase, AccountDetailsDialogBase 等）
+
+**使用原则**:
+- ✅ 优先使用现有组件
+- ✅ 通过 props 和插槽自定义
+- ✅ 保持组件的通用性和可扩展性
+- ❌ 不要在平台目录中重复实现通用组件
+- ❌ 不要修改组件的核心逻辑以适配单一平台
+
+### 8.2 账户卡片系统
+
+**基础组件**: `src/components/accounts/AccountCardBase.tsx`
+
+提供统一的卡片布局和交互逻辑，支持以下自定义：
+
+**Props 说明**:
+- `id`, `email`, `name`, `isActive`: 基础账户信息
+- `warningBadge`: 警告标识（右上角，如 BANNED、ERROR）
+- `statusBadge`: 状态标识（头部右侧）
+- `badges`: 徽章区域（订阅类型、平台标识等）
+- `content`: 主要内容区域（配额、使用情况等）
+- `footer`: 底部自定义区域
+- `onSwitch`, `onRefresh`, `onCopy`, `onExport`, `onDetails`, `onDelete`: 标准操作
+- `customActions`: 额外的自定义操作
+- `variant`: 卡片变体（`default` | `compact` | `detailed`）
+
+**交互特性**:
+- Hover 显示操作按钮
+- 激活状态显示左侧指示条和光晕效果
+- 警告状态显示红色边框和背景
+- 点击邮箱复制到剪贴板
+- 平滑的动画过渡
+
+### 8.3 详情对话框系统
+
+**基础组件**: `src/components/accounts/AccountDetailsDialogBase.tsx`
+
+提供统一的对话框结构，支持分组展示详细信息。
+
+**主要组件**:
+
+1. **AccountDetailsDialog**: 对话框容器
+   - `title`, `subtitle`: 标题和副标题
+   - `avatar`: 头像区域
+   - `badges`: 状态徽章
+   - `sections`: 详情分组数组
+   - `maxWidth`: 对话框宽度（`sm` | `md` | `lg` | `xl` | `2xl`）
+
+2. **DetailRow**: 单行详情
+   - `label`: 标签
+   - `value`: 值（支持 string 或 ReactNode）
+   - `icon`: 图标
+   - `copyable`: 是否可复制
+
+3. **DetailGrid**: 网格布局
+   - `columns`: 列数（1 | 2 | 3）
+   - `children`: 子元素（通常是 DetailRow）
+
+**使用示例**:
+```typescript
+const sections = [
+  {
+    title: '基础信息',
+    icon: <User className="h-4 w-4" />,
+    content: (
+      <DetailGrid columns={2}>
+        <DetailRow label="邮箱" value={email} copyable />
+        <DetailRow label="名称" value={name} />
+      </DetailGrid>
+    )
+  }
+]
+
+return (
+  <AccountDetailsDialog
+    open={open}
+    onClose={onClose}
+    title="账户详情"
+    sections={sections}
+  />
+)
+```

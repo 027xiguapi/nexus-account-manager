@@ -52,7 +52,6 @@ interface PollResult {
 
 export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps) {
     const { t } = useTranslation()
-    const isEn = t('app.name') !== 'Nexus 账号管理器'
 
     const [status, setStatus] = useState<Status>('idle')
     const [message, setMessage] = useState('')
@@ -146,23 +145,23 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                     createdAt: Date.now(),
                     idp: 'BuilderId',
                     credentials: {
-                        accessToken: backendAccount.accessToken,
-                        refreshToken: backendAccount.refreshToken || undefined,
-                        clientId: backendAccount.clientId || undefined,
-                        clientSecret: backendAccount.clientSecret || undefined,
-                        expiresAt: Date.now() + backendAccount.expiresIn * 1000,
+                        accessToken: backendAccount.access_token,
+                        refreshToken: backendAccount.refresh_token || undefined,
+                        clientId: backendAccount.client_id || undefined,
+                        clientSecret: backendAccount.client_secret || undefined,
+                        expiresAt: Date.now() + backendAccount.expires_in * 1000,
                         authMethod: 'oidc',
                         region: 'us-east-1'
                     },
                     subscription: {
-                        type: (backendAccount.quota.subscriptionType as KiroSubscriptionType) || 'Free',
-                        title: backendAccount.quota.subscriptionTitle
+                        type: (backendAccount.quota.subscription_type as KiroSubscriptionType) || 'Free',
+                        title: backendAccount.quota.subscription_title
                     },
                     usage: {
-                        current: backendAccount.quota.currentUsage || 0,
-                        limit: backendAccount.quota.totalLimit || 25,
-                        percentUsed: backendAccount.quota.totalLimit && backendAccount.quota.totalLimit > 0
-                            ? (backendAccount.quota.currentUsage || 0) / backendAccount.quota.totalLimit
+                        current: backendAccount.quota.current || 0,
+                        limit: backendAccount.quota.limit || 25,
+                        percentUsed: backendAccount.quota.limit && backendAccount.quota.limit > 0
+                            ? (backendAccount.quota.current || 0) / backendAccount.quota.limit
                             : 0,
                         lastUpdated: Date.now()
                     },

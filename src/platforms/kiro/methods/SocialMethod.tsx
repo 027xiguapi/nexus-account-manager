@@ -18,7 +18,6 @@ type Provider = 'Google' | 'Github'
 
 export function SocialMethod({ onSuccess, onError, onClose }: AddMethodProps) {
     const { t } = useTranslation()
-    const isEn = t('app.name') !== 'Nexus 账号管理器'
 
     const [status, setStatus] = useState<Status>('idle')
     const [message, setMessage] = useState('')

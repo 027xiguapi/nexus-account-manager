@@ -139,9 +139,10 @@ export const usePlatformStore = create<PlatformStore>((set, get) => ({
       const updated = { ...current, ...data } as Account
       
       // Special handling for Kiro accounts: deep merge credentials
-      if (updated.platform === 'kiro' && data.credentials) {
+      if (updated.platform === 'kiro' && 'credentials' in data && data.credentials) {
         const currentKiro = current as KiroAccount
-        updated.credentials = {
+        const updatedKiro = updated as KiroAccount
+        updatedKiro.credentials = {
           ...currentKiro.credentials,
           ...data.credentials
         }

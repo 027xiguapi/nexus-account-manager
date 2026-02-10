@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { AddAccountDialog } from './AddAccountDialog'
 import { EditAccountDialog } from './EditAccountDialog'
 import { ExportDialog } from '@/components/dialogs/ExportDialog'
-import { AccountCard } from '@/components/accounts/AccountCard'
+import { ClaudeAccountCard } from './ClaudeAccountCard'
 import { AccountTable } from '@/components/accounts/AccountTable'
 import { AccountSearch } from '@/components/accounts/AccountSearch'
 import { Card, CardContent } from '@/components/ui/card'
@@ -181,12 +181,11 @@ export function ClaudeAccountList() {
           {viewMode === 'grid' ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredAccounts.map((account) => (
-                <AccountCard
+                <ClaudeAccountCard
                   key={account.id}
                   account={account}
                   onExport={() => setExportOpen(true)}
-                  onSwitch={(account) => setSwitchAccount(account)}
-                  onEdit={(account) => setEdit(account)}
+                  onEdit={() => setEdit(account)}
                 />
               ))}
             </div>

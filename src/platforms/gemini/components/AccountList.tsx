@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { AddAccountDialog } from './AddAccountDialog'
 import { ExportDialog } from '@/components/dialogs/ExportDialog'
-import { AccountCard } from '@/components/accounts/AccountCard'
+import { GeminiAccountCard } from './GeminiAccountCard'
 import { AccountTable } from '@/components/accounts/AccountTable'
 import { AccountSearch } from '@/components/accounts/AccountSearch'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import { useTranslation } from 'react-i18next'
 import { Download, LayoutGrid, List, Search } from 'lucide-react'
-import type { Account } from '@/types/account'
 
 type ViewMode = 'grid' | 'list'
 
@@ -21,7 +20,7 @@ export function GeminiAccountList() {
   const [searchQuery, setSearchQuery] = useState('')
 
   const geminiAccounts = useMemo(
-    () => accounts.filter((acc): acc is Account => acc.platform === 'gemini' as any),
+    () => accounts.filter((acc) => acc.platform === 'gemini'),
     [accounts]
   )
 
@@ -119,7 +118,7 @@ export function GeminiAccountList() {
           {viewMode === 'grid' ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredAccounts.map((account) => (
-                <AccountCard
+                <GeminiAccountCard
                   key={account.id}
                   account={account}
                   onExport={() => setExportOpen(true)}
