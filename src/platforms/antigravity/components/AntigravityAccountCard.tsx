@@ -1,3 +1,4 @@
+import { logError } from '@/lib/logger'
 import { memo, useState } from 'react'
 import { AccountCard } from '@/components/accounts/AccountCardBase'
 import { Badge } from '@/components/ui/badge'
@@ -43,7 +44,7 @@ export const AntigravityAccountCard = memo(function AntigravityAccountCard({
       await AntigravityAccountService.refreshAccount(account)
       toast.success(t('accounts.refreshSuccess'), account.email)
     } catch (e: any) {
-      console.error('Failed to refresh:', e)
+      logError('Failed to refresh:', e)
       toast.error(t('accounts.refreshFailed'), e.message || t('common.unknownError'))
     } finally {
       setIsRefreshing(false)
@@ -55,7 +56,7 @@ export const AntigravityAccountCard = memo(function AntigravityAccountCard({
       await AntigravityAccountService.switchAccount(account.id)
       toast.success(t('accounts.switchSuccess'), account.email)
     } catch (e: any) {
-      console.error('Failed to switch account:', e)
+      logError('Failed to switch account:', e)
       toast.error(t('accounts.switchFailed'), e.message || t('common.unknownError'))
     }
   }

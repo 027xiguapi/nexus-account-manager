@@ -1,3 +1,4 @@
+import { logError } from '@/lib/logger'
 import { useState, useMemo } from 'react'
 import { AddAccountDialog } from './AddAccountDialog'
 import { EditAccountDialog } from './EditAccountDialog'
@@ -79,7 +80,7 @@ export function ClaudeAccountList() {
       
       toast.success(t('claude.switchSuccess', `Switched to ${account.email || account.name || 'Claude account'}`))
     } catch (error: any) {
-      console.error('Failed to switch Claude account:', error)
+      logError('Failed to switch Claude account:', error)
       toast.error(t('claude.errors.switchFailed', `Failed to switch account: ${error.message || error}`))
     } finally {
       setIsSwitching(false)

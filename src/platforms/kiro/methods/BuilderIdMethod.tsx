@@ -4,6 +4,7 @@
  * 使用 AWS Builder ID 的 Device Code Flow 登录
  */
 
+import { logError, logInfo } from '@/lib/logger'
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2, CheckCircle2, AlertCircle, Copy, Check, ExternalLink, EyeOff } from 'lucide-react'
@@ -72,18 +73,18 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
         try {
             if (usePrivateMode) {
                 // 使用隐私模式命令
-                console.log('[Browser] Attempting to open in private mode:', url)
+                logInfo('[Browser] Attempting to open in private mode:', url)
                 await invoke('open_url_in_private_mode', { url })
-                console.log('[Browser] Private mode command completed')
+                logInfo('[Browser] Private mode command completed')
             } else {
                 // 使用默认浏览器 - 使用 Tauri opener plugin
-                console.log('[Browser] Opening in default browser:', url)
+                logInfo('[Browser] Opening in default browser:', url)
                 const { openUrl } = await import('@tauri-apps/plugin-opener')
                 await openUrl(url)
-                console.log('[Browser] Default browser opened')
+                logInfo('[Browser] Default browser opened')
             }
         } catch (e) {
-            console.error("Open browser failed:", e)
+            logError("Open browser failed:", e)
             setMessage(`${t('platforms.kiro.auth.builderId.browserOpenFailed')}: ${e}. ${t('platforms.kiro.auth.builderId.tryingFallback')}`)
             // 回退到 window.open
             window.open(url, '_blank')
@@ -182,7 +183,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                     onError(result.error)
                 }
             } catch (e: any) {
-                console.error('[Poll] Error:', e)
+                logError('[Poll] Error:', e)
                 // 检查是否超时
                 if (pollCount >= maxPolls) {
                     clearInterval(pollRef.current!)

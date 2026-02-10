@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
+use crate::utils::logger::log_info;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
@@ -37,7 +38,7 @@ impl Storage {
         let path = get_storage_path(app)?;
         
         if !path.exists() {
-            println!("Storage file not found at {:?}, creating new storage", path);
+            log_info(&format!("Storage file not found, creating new: {}", path.display()));
             return Ok(Self::new());
         }
 
@@ -47,7 +48,7 @@ impl Storage {
         let storage: Storage = serde_json::from_str(&content)
             .map_err(|e| format!("Failed to parse storage: {}", e))?;
         
-        println!("Loaded {} accounts from {:?}", storage.accounts.len(), path);
+        log_info(&format!("Loaded {} accounts from {}", storage.accounts.len(), path.display()));
         Ok(storage)
     }
 
@@ -66,7 +67,7 @@ impl Storage {
         fs::write(&path, content)
             .map_err(|e| format!("Failed to write storage: {}", e))?;
         
-        println!("Saved {} accounts to {:?}", self.accounts.len(), path);
+        log_info(&format!("Saved {} accounts to {}", self.accounts.len(), path.display()));
         Ok(())
     }
 }
@@ -206,7 +207,7 @@ pub fn set_storage_path(
         storage.save(&app)?;
     }
     
-    println!("Storage path updated to: {:?}", path_buf);
+    log_info(&format!("Storage path updated to: {:?}", path_buf));
     Ok(())
 }
 

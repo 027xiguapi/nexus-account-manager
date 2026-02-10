@@ -19,6 +19,25 @@ pub enum LogLevel {
     Debug,
 }
 
+/// ANSI 颜色代码
+struct Colors;
+
+impl Colors {
+    const RESET: &'static str = "\x1b[0m";
+    
+    // 日志级别颜色
+    const INFO: &'static str = "\x1b[36m";      // 青色 (Cyan)
+    const WARN: &'static str = "\x1b[33m";      // 黄色 (Yellow)
+    const ERROR: &'static str = "\x1b[31m";     // 红色 (Red)
+    const DEBUG: &'static str = "\x1b[35m";     // 紫色 (Magenta)
+    
+    // 时间戳颜色
+    const TIMESTAMP: &'static str = "\x1b[90m"; // 灰色 (Bright Black)
+}
+
+/// 最大日志消息长度（字符数）
+const MAX_LOG_LENGTH: usize = 500;
+
 /// 全局日志文件路径
 static LOG_FILE_PATH: Lazy<Mutex<Option<PathBuf>>> = Lazy::new(|| Mutex::new(None));
 
@@ -55,6 +74,26 @@ fn get_log_dir() -> Result<PathBuf, String> {
     Ok(app_data.join("com.nexus.account-manager").join("logs"))
 }
 
+/// 截断长字符串
+fn truncate_message(message: &str) -> String {
+    if message.len() <= MAX_LOG_LENGTH {
+        message.to_string()
+    } else {
+        format!("{}... [truncated, total {} chars]", &message[..MAX_LOG_LENGTH], message.len())
+    }
+}
+
+/// 获取日志级别对应的颜色
+fn get_level_color(level: &str) -> &'static str {
+    match level {
+        "INFO" => Colors::INFO,
+        "WARN" => Colors::WARN,
+        "ERROR" => Colors::ERROR,
+        "DEBUG" => Colors::DEBUG,
+        _ => Colors::RESET,
+    }
+}
+
 /// 写入日志到文件
 fn write_to_file(path: &PathBuf, level: &str, message: &str) {
     if let Ok(mut file) = OpenOptions::new()
@@ -63,22 +102,40 @@ fn write_to_file(path: &PathBuf, level: &str, message: &str) {
         .open(path)
     {
         let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S");
-        let _ = writeln!(file, "[{}] [{}] {}", timestamp, level, message);
+        let truncated = truncate_message(message);
+        let _ = writeln!(file, "[{}] [{}] {}", timestamp, level, truncated);
     }
 }
 
 /// 写入日志（同时输出到控制台和文件）
 fn log_message<T: Display>(level: &str, message: T, to_stderr: bool) {
     let msg = message.to_string();
+    let truncated = truncate_message(&msg);
+    let timestamp = Local::now().format("%H:%M:%S");
+    
+    // 获取颜色
+    let level_color = get_level_color(level);
+    
+    // 格式化带颜色的控制台输出
+    let colored_output = format!(
+        "{}[{}]{} {}{:<5}{} {}",
+        Colors::TIMESTAMP,
+        timestamp,
+        Colors::RESET,
+        level_color,
+        level,
+        Colors::RESET,
+        truncated
+    );
     
     // 输出到控制台
     if to_stderr {
-        eprintln!("[{}] {}", level, msg);
+        eprintln!("{}", colored_output);
     } else {
-        println!("[{}] {}", level, msg);
+        println!("{}", colored_output);
     }
     
-    // 输出到文件
+    // 输出到文件（不带颜色）
     if let Ok(path_guard) = LOG_FILE_PATH.lock() {
         if let Some(log_file) = path_guard.as_ref() {
             write_to_file(log_file, level, &msg);
@@ -97,7 +154,6 @@ pub fn log_warn<T: Display>(message: T) {
 }
 
 /// 输出错误日志
-#[allow(dead_code)]
 pub fn log_error<T: Display>(message: T) {
     log_message("ERROR", message, true);
 }

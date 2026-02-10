@@ -4,6 +4,7 @@
  * 从 VSCode/Cursor 的 state.vscdb 导入账号
  */
 
+import { logError, logWarn } from '@/lib/logger'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -64,7 +65,7 @@ export function ImportMethod({ onSuccess, onClose }: AddMethodProps) {
                 setDbPath(selected)
             }
         } catch (e: any) {
-            console.error('File picker error:', e)
+            logError('File picker error:', e)
         }
     }
 
@@ -131,7 +132,7 @@ export function ImportMethod({ onSuccess, onClose }: AddMethodProps) {
                         accessToken: tokenResponse.access_token
                     })
                 } catch (e) {
-                    console.warn('Failed to fetch quota:', e)
+                    logWarn('Failed to fetch quota:', e)
                 }
 
                 // 构造完整的 AntigravityAccount 对象
@@ -160,7 +161,7 @@ export function ImportMethod({ onSuccess, onClose }: AddMethodProps) {
                 onSuccess(account)
                 successCount++
             } catch (e) {
-                console.error('Failed to import token:', e)
+                logError('Failed to import token:', e)
             }
         }
 

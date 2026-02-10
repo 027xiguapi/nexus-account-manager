@@ -1,3 +1,4 @@
+import { logError } from '@/lib/logger'
 import { memo, useState } from 'react'
 import { AccountCard } from '@/components/accounts/AccountCardBase'
 import { Badge } from '@/components/ui/badge'
@@ -56,7 +57,7 @@ export const KiroAccountCard = memo(function KiroAccountCard({
         toast.error(t('accounts.refreshFailed'), result.error || t('common.unknownError'))
       }
     } catch (e: any) {
-      console.error('Failed to refresh:', e)
+      logError('Failed to refresh:', e)
       toast.error(t('accounts.refreshFailed'), e.message || t('common.unknownError'))
     } finally {
       setIsRefreshing(false)
@@ -68,7 +69,7 @@ export const KiroAccountCard = memo(function KiroAccountCard({
       await KiroAccountService.switchAccount(account.id)
       toast.success(t('accounts.switchSuccess'), account.email)
     } catch (e: any) {
-      console.error('Failed to switch account:', e)
+      logError('Failed to switch account:', e)
       toast.error(t('accounts.switchFailed'), e.message || t('common.unknownError'))
     }
   }

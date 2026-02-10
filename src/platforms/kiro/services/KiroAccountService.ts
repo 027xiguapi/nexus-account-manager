@@ -9,6 +9,7 @@
  * - Machine ID binding (device fingerprint isolation)
  */
 
+import { logError, logInfo, logWarn } from '@/lib/logger'
 import { invoke } from '@tauri-apps/api/core'
 import { MachineIdService } from '@/services/MachineIdService'
 import type { KiroAccount, KiroAccountStatus } from '@/types/account'
@@ -75,7 +76,7 @@ export class KiroAccountService {
             throw new Error('Account not found or not a Kiro account')
         }
 
-        console.log(`[Kiro Switch] Starting switch to: ${targetAccount.email}`)
+        logInfo(`[Kiro Switch] Starting switch to: ${targetAccount.email}`)
 
         // 1. Ensure account has bound machine ID (device fingerprint isolation)
         const machineService = MachineIdService.getInstance()
@@ -84,7 +85,7 @@ export class KiroAccountService {
         if (!machineId) {
             machineId = await machineService.generateMachineId()
             await machineService.bindMachineId(accountId, machineId)
-            console.log(`[Kiro Switch] Generated and bound new machine ID for account: ${targetAccount.email}`)
+            logInfo(`[Kiro Switch] Generated and bound new machine ID for account: ${targetAccount.email}`)
         }
 
         // 2. Refresh token if needed
@@ -116,9 +117,9 @@ export class KiroAccountService {
                     targetAccount.credentials.refreshToken = tokenResult.refreshToken
                 }
 
-                console.log(`[Kiro Switch] Token refreshed successfully`)
+                logInfo(`[Kiro Switch] Token refreshed successfully`)
             } catch (e) {
-                console.warn(`[Kiro Switch] Token refresh failed, continuing with existing token:`, e)
+                logWarn(`[Kiro Switch] Token refresh failed, continuing with existing token:`, e)
             }
         }
 
@@ -134,16 +135,16 @@ export class KiroAccountService {
                 authMethod: targetAccount.idp === 'BuilderId' ? 'IdC' : 'social',
                 provider: targetAccount.idp
             })
-            console.log(`[Kiro Switch] Credentials written to AWS SSO cache`)
+            logInfo(`[Kiro Switch] Credentials written to AWS SSO cache`)
         } catch (e) {
-            console.error(`[Kiro Switch] Failed to write SSO cache:`, e)
+            logError(`[Kiro Switch] Failed to write SSO cache:`, e)
             throw new Error(`切换账号失败: ${e}`)
         }
 
         // 4. Batch update: deactivate all Kiro accounts, then activate target
         const kiroAccounts = accounts.filter(a => a.platform === 'kiro')
         
-        console.log(`[Kiro Switch] Updating ${kiroAccounts.length} Kiro accounts`)
+        logInfo(`[Kiro Switch] Updating ${kiroAccounts.length} Kiro accounts`)
         
         // Deactivate all accounts first
         for (const acc of kiroAccounts) {
@@ -151,7 +152,7 @@ export class KiroAccountService {
                 await store.updateAccount(acc.id, {
                     isActive: false
                 })
-                console.log(`[Kiro Switch] Deactivated: ${acc.email}`)
+                logInfo(`[Kiro Switch] Deactivated: ${acc.email}`)
             }
         }
 
@@ -162,8 +163,8 @@ export class KiroAccountService {
             lastUsedAt: now
         })
 
-        console.log(`[Kiro Switch] Activated: ${targetAccount.email}`)
-        console.log(`[Kiro Switch] Switch completed successfully`)
+        logInfo(`[Kiro Switch] Activated: ${targetAccount.email}`)
+        logInfo(`[Kiro Switch] Switch completed successfully`)
     }
 
     /**
@@ -185,7 +186,7 @@ export class KiroAccountService {
             if (!machineId) {
                 machineId = await machineService.generateMachineId()
                 await machineService.bindMachineId(account.id, machineId)
-                console.log(`[Kiro Refresh] Generated and bound new machine ID for account: ${account.email}`)
+                logInfo(`[Kiro Refresh] Generated and bound new machine ID for account: ${account.email}`)
             }
 
             // 1. 刷新 token

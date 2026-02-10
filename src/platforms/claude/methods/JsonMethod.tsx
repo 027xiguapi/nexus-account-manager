@@ -10,6 +10,7 @@
  * }
  */
 
+import { logError } from '@/lib/logger'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -76,7 +77,7 @@ export function JsonMethod({ onSuccess, onError, onClose, initialData, isEdit = 
           setJsonInput(JSON.stringify(data.config, null, 2))
         }
       } catch (e) {
-        console.error('Failed to parse initial data:', e)
+        logError('Failed to parse initial data:', e)
       }
     }
   }, [initialData, isEdit])

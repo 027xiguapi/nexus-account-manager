@@ -76,7 +76,9 @@ nexus-account-manager/
 │   │       └── zh/
 │   │
 │   ├── lib/                     # 工具函数库
-│   │   └── utils.ts
+│   │   ├── utils.ts            # 通用工具函数
+│   │   ├── logger.ts           # 统一日志系统
+│   │   └── toast.ts            # Toast 通知工具
 │   │
 │   ├── assets/                  # 静态资源
 │   ├── App.tsx                  # 应用根组件
@@ -100,7 +102,11 @@ nexus-account-manager/
 │       │   ├── import.rs
 │       │   └── mod.rs
 │       │
-│       ├── utils/               # 通用工具模块
+│       ├── utils/               # 工具模块
+│       │   ├── logger.rs       # 统一日志系统
+│       │   ├── config.rs       # 配置管理
+│       │   ├── process.rs      # 进程管理
+│       │   ├── db_inject.rs    # 数据库注入
 │       │   ├── paths.rs        # 路径工具
 │       │   └── mod.rs
 │       │
@@ -114,6 +120,11 @@ nexus-account-manager/
 │   ├── CLAUDE_SETUP.md          # Claude 配置指南
 │   ├── IMPLEMENTATION_SUMMARY.md
 │   └── QUICK_REFERENCE.md
+│
+├── scripts/                     # 自动化脚本
+│   ├── replace-console-logs.cjs # 批量替换 console 调用
+│   ├── add-logger-imports.cjs   # 自动添加日志导入
+│   └── ...
 │
 ├── test/                        # 测试数据
 │   ├── claude-test.json
@@ -761,15 +772,25 @@ function MyComponent() {
 
 在提交代码前，确认以下事项：
 
+**通用**:
 - [ ] 没有新增未声明的目录
 - [ ] 没有引入新的依赖
 - [ ] 没有修改核心架构
 - [ ] 代码符合 TypeScript/Rust 规范
+
+**前端 (TypeScript)**:
 - [ ] 新增平台已在 registry.ts 注册
 - [ ] 所有文本使用 i18next 国际化
 - [ ] UI 组件使用现有的 Radix UI 组件
 - [ ] 状态管理使用 Zustand
+- [ ] 使用统一日志系统 (`logInfo`, `logWarn`, `logError`, `logDebug`)
+- [ ] 没有直接使用 `console.log`, `console.error`, `console.warn`
+
+**后端 (Rust)**:
 - [ ] Tauri 命令已正确注册
+- [ ] 使用统一日志系统 (`log_info`, `log_warn`, `log_error`, `log_debug`)
+- [ ] 没有直接使用 `println!` 或 `eprintln!`
+- [ ] 敏感信息（Token、密码）未记录到日志
 
 ---
 
@@ -782,14 +803,301 @@ function MyComponent() {
 ---
 
 **最后更新**: 2026-02-10  
-**版本**: 2.2  
+**版本**: 3.0  
 **维护者**: adnaan
 
 ---
 
-## 八、组件复用规范
+## 八、统一日志系统规范
 
-### 8.1 通用 UI 组件
+### 8.1 后端日志系统 (Rust)
+
+**位置**: `src-tauri/src/utils/logger.rs`
+
+所有 Rust 代码必须使用统一日志系统进行日志输出，禁止直接使用 `println!` 或 `eprintln!`。
+
+#### 8.1.1 日志函数
+
+```rust
+use crate::utils::logger::{log_info, log_warn, log_error, log_debug};
+
+// 信息日志 - 用于记录正常操作
+log_info("Starting OAuth server...");
+log_info(&format!("Processing {} accounts", count));
+
+// 警告日志 - 用于记录潜在问题
+log_warn("Configuration not found, using defaults");
+log_warn(&format!("Token expires in {} seconds", remaining));
+
+// 错误日志 - 用于记录错误和异常
+log_error(&format!("Failed to connect: {}", error));
+log_error("Database operation failed");
+
+// 调试日志 - 用于开发调试（生产环境可关闭）
+log_debug("Debug information");
+log_debug(&format!("Request payload: {:?}", data));
+```
+
+#### 8.1.2 日志特性
+
+**颜色支持**:
+- INFO: 青色 (Cyan)
+- WARN: 黄色 (Yellow)
+- ERROR: 红色 (Red)
+- DEBUG: 紫色 (Purple)
+- 时间戳: 灰色 (Gray)
+
+**自动截断**:
+- 最大长度: 500 字符
+- 超长消息自动截断并显示总长度
+- 示例: `"Long message... [truncated, total 1234 chars]"`
+
+**双重输出**:
+- 控制台: 带颜色的实时输出
+- 文件: 纯文本日志，保存在 `%APPDATA%/com.nexus.account-manager/logs/app.log`
+
+#### 8.1.3 使用规则
+
+**✅ 必须遵守**:
+- 所有日志输出使用 `log_info`, `log_warn`, `log_error`, `log_debug`
+- 在文件顶部导入: `use crate::utils::logger::{log_info, log_warn, log_error, log_debug};`
+- 长消息会自动截断，无需手动处理
+- 敏感信息（Token、密码）不得记录到日志
+
+**❌ 禁止操作**:
+- 直接使用 `println!()` - 应使用 `log_info()`
+- 直接使用 `eprintln!()` - 应使用 `log_error()`
+- 记录完整的 Token、密码等敏感数据
+- 在循环中输出大量重复日志
+
+#### 8.1.4 日志级别选择
+
+| 级别 | 使用场景 | 示例 |
+|------|---------|------|
+| INFO | 正常操作、状态变更 | 启动服务、账号切换、配置加载 |
+| WARN | 潜在问题、降级处理 | 配置缺失使用默认值、Token 即将过期 |
+| ERROR | 错误和异常 | 网络请求失败、数据库错误、认证失败 |
+| DEBUG | 开发调试信息 | 请求参数、响应数据、中间状态 |
+
+#### 8.1.5 代码示例
+
+```rust
+use crate::utils::logger::{log_info, log_warn, log_error};
+
+#[tauri::command]
+pub async fn switch_account(account_id: String) -> Result<(), String> {
+    log_info(&format!("Switching to account: {}", account_id));
+    
+    match perform_switch(&account_id).await {
+        Ok(_) => {
+            log_info("Account switched successfully");
+            Ok(())
+        }
+        Err(e) => {
+            log_error(&format!("Failed to switch account: {}", e));
+            Err(e.to_string())
+        }
+    }
+}
+```
+
+### 8.2 前端日志系统 (TypeScript)
+
+**位置**: `src/lib/logger.ts`
+
+所有前端代码必须使用统一日志系统，禁止直接使用 `console.log`, `console.error`, `console.warn`。
+
+#### 8.2.1 日志函数
+
+```typescript
+import { logInfo, logWarn, logError, logDebug } from '@/lib/logger'
+
+// 信息日志 - 用于记录正常操作
+logInfo('User logged in successfully')
+logInfo(`Loading ${count} accounts`)
+
+// 警告日志 - 用于记录潜在问题
+logWarn('API rate limit approaching')
+logWarn(`Deprecated method called: ${methodName}`)
+
+// 错误日志 - 用于记录错误和异常
+logError('Failed to fetch account data')
+logError(`Network error: ${error.message}`)
+
+// 调试日志 - 仅在开发环境输出
+logDebug('Component mounted')
+logDebug(`State updated: ${JSON.stringify(state)}`)
+```
+
+#### 8.2.2 日志特性
+
+**颜色支持**:
+- INFO: 青色 (#00BCD4)
+- WARN: 黄色 (#FFC107)
+- ERROR: 红色 (#F44336)
+- DEBUG: 紫色 (#9C27B0)
+- 时间戳: 灰色 (#9E9E9E)
+
+**自动截断**:
+- 最大长度: 500 字符
+- 超长消息自动截断并显示总长度
+- 示例: `"Long message... [truncated, total 1234 chars]"`
+
+**环境感知**:
+- DEBUG 日志仅在开发环境 (`import.meta.env.DEV`) 输出
+- 生产环境自动过滤调试日志
+
+#### 8.2.3 高级功能
+
+**日志分组**:
+```typescript
+import { logGroup, logGroupEnd, logInfo } from '@/lib/logger'
+
+logGroup('Account Operations')
+logInfo('Fetching accounts...')
+logInfo('Processing data...')
+logGroupEnd()
+
+// 折叠分组
+logGroup('Detailed Debug Info', true)
+logDebug('Step 1')
+logDebug('Step 2')
+logGroupEnd()
+```
+
+**表格输出**:
+```typescript
+import { logTable } from '@/lib/logger'
+
+// 输出数组或对象为表格
+logTable(accounts)
+logTable(accounts, ['id', 'email', 'status'])
+```
+
+#### 8.2.4 使用规则
+
+**✅ 必须遵守**:
+- 所有日志输出使用 `logInfo`, `logWarn`, `logError`, `logDebug`
+- 在文件顶部导入: `import { logInfo, logWarn, logError, logDebug } from '@/lib/logger'`
+- 长消息会自动截断，无需手动处理
+- 敏感信息（Token、密码）不得记录到日志
+- 使用 `logDebug` 输出调试信息，生产环境自动过滤
+
+**❌ 禁止操作**:
+- 直接使用 `console.log()` - 应使用 `logInfo()`
+- 直接使用 `console.error()` - 应使用 `logError()`
+- 直接使用 `console.warn()` - 应使用 `logWarn()`
+- 记录完整的 Token、密码等敏感数据
+- 在循环中输出大量重复日志
+
+#### 8.2.5 日志级别选择
+
+| 级别 | 使用场景 | 示例 |
+|------|---------|------|
+| INFO | 正常操作、状态变更 | 用户登录、数据加载、页面跳转 |
+| WARN | 潜在问题、降级处理 | API 限流警告、过时方法调用 |
+| ERROR | 错误和异常 | 网络请求失败、数据验证错误 |
+| DEBUG | 开发调试信息 | 组件生命周期、状态变化、API 响应 |
+
+#### 8.2.6 代码示例
+
+```typescript
+import { logInfo, logWarn, logError, logDebug } from '@/lib/logger'
+
+async function switchAccount(accountId: string) {
+  logInfo(`Switching to account: ${accountId}`)
+  
+  try {
+    const result = await invoke('switch_account', { accountId })
+    logInfo('Account switched successfully')
+    return result
+  } catch (error) {
+    logError(`Failed to switch account: ${error}`)
+    throw error
+  }
+}
+
+// 调试日志（仅开发环境）
+useEffect(() => {
+  logDebug('Component mounted')
+  return () => logDebug('Component unmounted')
+}, [])
+```
+
+### 8.3 日志最佳实践
+
+#### 8.3.1 日志内容
+
+**✅ 好的日志**:
+```typescript
+// 清晰描述操作
+logInfo('Starting account refresh')
+
+// 包含关键上下文
+logInfo(`Refreshing account: ${accountId}`)
+
+// 错误包含原因
+logError(`Failed to refresh account: ${error.message}`)
+```
+
+**❌ 不好的日志**:
+```typescript
+// 过于简单
+logInfo('Done')
+
+// 缺少上下文
+logError('Error')
+
+// 包含敏感信息
+logInfo(`Token: ${accessToken}`)
+```
+
+#### 8.3.2 日志频率
+
+**✅ 合理的日志**:
+```typescript
+// 关键操作节点
+logInfo('Starting batch operation')
+// ... 处理 1000 条数据
+logInfo('Batch operation completed')
+```
+
+**❌ 过度的日志**:
+```typescript
+// 循环中的日志
+for (const item of items) {
+  logInfo(`Processing item ${item.id}`) // 不要这样做！
+}
+```
+
+#### 8.3.3 错误处理
+
+**✅ 完整的错误日志**:
+```typescript
+try {
+  await riskyOperation()
+} catch (error) {
+  logError(`Operation failed: ${error.message}`)
+  // 可选：记录堆栈跟踪（仅开发环境）
+  logDebug(error.stack)
+  throw error
+}
+```
+
+**❌ 吞掉错误**:
+```typescript
+try {
+  await riskyOperation()
+} catch (error) {
+  // 什么都不做 - 不要这样！
+}
+```
+
+---
+
+## 九、组件复用规范
+
+### 9.1 通用 UI 组件
 
 **位置**: `src/components/ui/` 和 `src/components/accounts/`
 
@@ -804,7 +1112,7 @@ function MyComponent() {
 - ❌ 不要在平台目录中重复实现通用组件
 - ❌ 不要修改组件的核心逻辑以适配单一平台
 
-### 8.2 账户卡片系统
+### 9.2 账户卡片系统
 
 **基础组件**: `src/components/accounts/AccountCardBase.tsx`
 
@@ -828,7 +1136,7 @@ function MyComponent() {
 - 点击邮箱复制到剪贴板
 - 平滑的动画过渡
 
-### 8.3 详情对话框系统
+### 9.3 详情对话框系统
 
 **基础组件**: `src/components/accounts/AccountDetailsDialogBase.tsx`
 

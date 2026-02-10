@@ -6,6 +6,7 @@ use commands::*;
 use core::Storage;
 use std::sync::Mutex;
 use tauri::{Manager, Emitter, menu::{Menu, MenuItem}, tray::TrayIconBuilder};
+use utils::logger::{log_info, log_error};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -71,7 +72,7 @@ pub fn run() {
             // Initialize storage
             let storage = Storage::load(&app.handle())
                 .unwrap_or_else(|e| {
-                    eprintln!("Failed to load storage: {}", e);
+                    log_error(&format!("Failed to load storage: {}", e));
                     Storage::new()
                 });
             
@@ -105,11 +106,11 @@ pub fn run() {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.show();
                                 let _ = window.set_focus();
-                                println!("Window shown from tray menu");
+                                log_info("Window shown from tray menu");
                             }
                         }
                         id if id == quit_id => {
-                            println!("Quit from tray menu");
+                            log_info("Quit from tray menu");
                             app.exit(0);
                         }
                         _ => {}
@@ -121,7 +122,7 @@ pub fn run() {
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.show();
                             let _ = window.set_focus();
-                            println!("Window shown from tray click");
+                            log_info("Window shown from tray click");
                         }
                     }
                 })
@@ -132,7 +133,7 @@ pub fn run() {
                 let window_clone = window.clone();
                 window.on_window_event(move |event| {
                     if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                        println!("Close requested - hiding window and running in background");
+                        log_info("Close requested - hiding window");
                         api.prevent_close();
                         let _ = window_clone.hide();
                     }

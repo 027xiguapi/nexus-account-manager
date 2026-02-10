@@ -1,3 +1,4 @@
+import { logError } from '@/lib/logger'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/hooks/useTheme'
@@ -37,7 +38,7 @@ export function Settings() {
       const path = await storageService.getCurrentPath()
       setStoragePath(path)
     } catch (error) {
-      console.error('Failed to load storage path:', error)
+      logError('Failed to load storage path:', error)
     }
   }
 
@@ -48,7 +49,7 @@ export function Settings() {
         setStoragePath(selected)
       }
     } catch (error) {
-      console.error('Failed to select directory:', error)
+      logError('Failed to select directory:', error)
     }
   }
 
@@ -60,7 +61,7 @@ export function Settings() {
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (error) {
-      console.error('Failed to set storage path:', error)
+      logError('Failed to set storage path:', error)
     } finally {
       setLoading(false)
     }
@@ -74,7 +75,7 @@ export function Settings() {
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (error) {
-      console.error('Failed to reset path:', error)
+      logError('Failed to reset path:', error)
     } finally {
       setLoading(false)
     }

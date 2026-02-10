@@ -1,3 +1,4 @@
+import { logError, logInfo } from '@/lib/logger'
 import { create } from 'zustand'
 import { invoke } from '@tauri-apps/api/core'
 import { Account, KiroAccount } from '@/types/account'
@@ -106,7 +107,7 @@ export const usePlatformStore = create<PlatformStore>((set, get) => ({
       const accounts = backendAccounts.map(toFrontend)
       set({ accounts, isLoading: false })
     } catch (err: any) {
-      console.error('Failed to load accounts:', err)
+      logError('Failed to load accounts:', err)
       set({ error: err.message || 'Failed to load accounts', isLoading: false })
     }
   },
@@ -114,16 +115,16 @@ export const usePlatformStore = create<PlatformStore>((set, get) => ({
   addAccount: async (account) => {
     set({ isLoading: true, error: null })
     try {
-      console.log('[Store] Adding account:', JSON.stringify(account, null, 2))
+      logInfo('[Store] Adding account:', JSON.stringify(account, null, 2))
       const backendAccount = toBackend(account)
-      console.log('[Store] Backend account:', JSON.stringify(backendAccount, null, 2))
+      logInfo('[Store] Backend account:', JSON.stringify(backendAccount, null, 2))
       await invoke('add_account', { account: backendAccount })
       set((state) => ({
         accounts: [...state.accounts, account],
         isLoading: false
       }))
     } catch (err: any) {
-      console.error('Failed to add account:', err)
+      logError('Failed to add account:', err)
       set({ error: err.message || 'Failed to add account', isLoading: false })
       throw err
     }
@@ -156,7 +157,7 @@ export const usePlatformStore = create<PlatformStore>((set, get) => ({
         isLoading: false
       }))
     } catch (err: any) {
-      console.error('Failed to update account:', err)
+      logError('Failed to update account:', err)
       set({ error: err.message || 'Failed to update account', isLoading: false })
       throw err
     }
@@ -172,7 +173,7 @@ export const usePlatformStore = create<PlatformStore>((set, get) => ({
         isLoading: false
       }))
     } catch (err: any) {
-      console.error('Failed to delete account:', err)
+      logError('Failed to delete account:', err)
       set({ error: err.message || 'Failed to delete account', isLoading: false })
     }
   },
@@ -299,7 +300,7 @@ export const usePlatformStore = create<PlatformStore>((set, get) => ({
 
     if (kiroAccounts.length === 0) return
 
-    console.log(`[BatchRefresh] Refreshing ${kiroAccounts.length} Kiro accounts...`)
+    logInfo(`[BatchRefresh] Refreshing ${kiroAccounts.length} Kiro accounts...`)
 
     // Update all to refreshing status
     set((state) => ({
@@ -346,9 +347,9 @@ export const usePlatformStore = create<PlatformStore>((set, get) => ({
         }
       }
 
-      console.log(`[BatchRefresh] Completed: ${result.successCount} success, ${result.failedCount} failed`)
+      logInfo(`[BatchRefresh] Completed: ${result.successCount} success, ${result.failedCount} failed`)
     } catch (error) {
-      console.error('[BatchRefresh] Error:', error)
+      logError('[BatchRefresh] Error:', error)
     }
   },
 
@@ -364,14 +365,14 @@ export const usePlatformStore = create<PlatformStore>((set, get) => ({
       get().checkAndRefreshExpiringTokens()
     }, intervalMs)
 
-    console.log(`[AutoRefresh] Started with interval: ${autoRefreshInterval} minutes`)
+    logInfo(`[AutoRefresh] Started with interval: ${autoRefreshInterval} minutes`)
   },
 
   stopAutoRefresh: () => {
     if (autoRefreshTimer) {
       clearInterval(autoRefreshTimer)
       autoRefreshTimer = null
-      console.log('[AutoRefresh] Stopped')
+      logInfo('[AutoRefresh] Stopped')
     }
   },
 
@@ -385,7 +386,7 @@ export const usePlatformStore = create<PlatformStore>((set, get) => ({
     )
 
     if (expiringAccounts.length > 0) {
-      console.log(`[AutoRefresh] Found ${expiringAccounts.length} expiring tokens`)
+      logInfo(`[AutoRefresh] Found ${expiringAccounts.length} expiring tokens`)
       await get().batchRefreshKiroTokens(expiringAccounts.map(a => a.id))
     }
   },

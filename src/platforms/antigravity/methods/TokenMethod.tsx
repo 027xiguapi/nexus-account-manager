@@ -4,6 +4,7 @@
  * 通过粘贴 Refresh Token 批量添加账号
  */
 
+import { logWarn } from '@/lib/logger'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -103,7 +104,7 @@ export function TokenMethod({ onSuccess, onError, onClose }: AddMethodProps) {
                         accessToken: tokenResponse.access_token
                     })
                 } catch (e) {
-                    console.warn('Failed to fetch quota:', e)
+                    logWarn('Failed to fetch quota:', e)
                 }
 
                 // 构造完整的 AntigravityAccount 对象

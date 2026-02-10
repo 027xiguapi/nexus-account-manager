@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use reqwest::Client;
 use std::time::Duration;
+use crate::utils::logger::{log_info, log_warn};
 
 // Google OAuth configuration
 // Using the client ID from the original project source code provided
@@ -116,10 +117,10 @@ pub async fn exchange_code(code: &str, redirect_uri: &str) -> Result<TokenRespon
             .await
             .map_err(|e| format!("Token parsing failed: {}", e))?;
         
-        println!("Token exchange successful!");
+        log_info("Token exchange successful");
         
         if token_res.refresh_token.is_none() {
-            eprintln!("Warning: Google did not return a refresh_token.");
+            log_warn("Google did not return a refresh_token");
         }
         
         Ok(token_res)
@@ -139,8 +140,6 @@ pub async fn refresh_access_token(refresh_token: &str) -> Result<TokenResponse, 
         ("refresh_token", refresh_token),
         ("grant_type", "refresh_token"),
     ];
-
-    println!("Refreshing Token...");
     
     let response = client
         .post(TOKEN_URL)
@@ -155,7 +154,7 @@ pub async fn refresh_access_token(refresh_token: &str) -> Result<TokenResponse, 
             .await
             .map_err(|e| format!("Refresh data parsing failed: {}", e))?;
         
-        println!("Token refreshed successfully! Expires in: {} seconds", token_data.expires_in);
+        log_info(&format!("Token refreshed, expires in: {}s", token_data.expires_in));
         Ok(token_data)
     } else {
         let error_text = response.text().await.unwrap_or_default();
