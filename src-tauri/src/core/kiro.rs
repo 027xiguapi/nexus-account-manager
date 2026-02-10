@@ -11,6 +11,7 @@ const REGION: &str = "us-east-1";
 const CLI_USER_AGENT: &str = "aws-cli/2.15.0 Python/3.11.6 Windows/10 exe/AMD64 prompt/off command/codecatalyst.login";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct KiroTokenData {
     pub access_token: String,
     pub refresh_token: Option<String>,
@@ -249,12 +250,11 @@ pub async fn refresh_token(
 // === Quota / Usage Logic ===
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct KiroQuotaData {
     pub subscription_type: Option<String>,
     pub subscription_title: Option<String>,
-    #[serde(rename = "limit")]
     pub total_limit: f64,
-    #[serde(rename = "current")]
     pub current_usage: f64,
     pub percent_used: f64,
     pub days_remaining: Option<i64>,

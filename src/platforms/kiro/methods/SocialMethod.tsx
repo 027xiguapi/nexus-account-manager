@@ -17,8 +17,8 @@ type Status = 'idle' | 'waiting' | 'success' | 'error'
 type Provider = 'Google' | 'Github'
 
 export function SocialMethod({ onSuccess, onError, onClose }: AddMethodProps) {
-    const { i18n } = useTranslation()
-    const isEn = i18n.language === 'en'
+    const { t } = useTranslation()
+    const isEn = t('app.name') !== 'Nexus 账号管理器'
 
     const [status, setStatus] = useState<Status>('idle')
     const [message, setMessage] = useState('')
@@ -27,7 +27,7 @@ export function SocialMethod({ onSuccess, onError, onClose }: AddMethodProps) {
     const handleLogin = async (selectedProvider: Provider) => {
         setProvider(selectedProvider)
         setStatus('waiting')
-        setMessage(isEn ? `Logging in with ${selectedProvider}...` : `正在使用 ${selectedProvider} 登录...`)
+        setMessage(t('platforms.kiro.auth.social.loggingIn', { provider: selectedProvider }))
 
         try {
             const result = await invoke<any>('kiro_social_login', {
@@ -67,12 +67,12 @@ export function SocialMethod({ onSuccess, onError, onClose }: AddMethodProps) {
             }
 
             setStatus('success')
-            setMessage(isEn ? 'Login successful!' : '登录成功！')
+            setMessage(t('platforms.kiro.auth.social.loginSuccess'))
             onSuccess(kiroAccount)
             setTimeout(onClose, 1000)
         } catch (e: any) {
             setStatus('error')
-            setMessage(e.message || (isEn ? 'Login failed' : '登录失败'))
+            setMessage(e.message || t('platforms.kiro.auth.social.loginFailed'))
             onError(e.message)
         }
     }

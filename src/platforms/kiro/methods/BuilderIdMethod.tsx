@@ -51,8 +51,8 @@ interface PollResult {
 }
 
 export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps) {
-    const { i18n } = useTranslation()
-    const isEn = i18n.language === 'en'
+    const { t } = useTranslation()
+    const isEn = t('app.name') !== 'Nexus 账号管理器'
 
     const [status, setStatus] = useState<Status>('idle')
     const [message, setMessage] = useState('')
@@ -85,9 +85,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
             }
         } catch (e) {
             console.error("Open browser failed:", e)
-            setMessage(isEn 
-                ? `Browser open failed: ${e}. Trying fallback...` 
-                : `浏览器打开失败: ${e}。尝试备用方案...`)
+            setMessage(`${t('platforms.kiro.auth.builderId.browserOpenFailed')}: ${e}. ${t('platforms.kiro.auth.builderId.tryingFallback')}`)
             // 回退到 window.open
             window.open(url, '_blank')
         }
@@ -96,14 +94,12 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
     // 开始登录
     const handleStartLogin = async () => {
         setStatus('waiting')
-        setMessage(isEn ? 'Initializing...' : '正在初始化...')
+        setMessage(t('platforms.kiro.auth.builderId.initializing'))
 
         try {
             const result = await invoke<DeviceCodeData>('kiro_start_device_auth')
             setDeviceCodeData(result)
-            setMessage(isEn
-                ? 'Please complete authorization in browser'
-                : '请在浏览器中完成授权')
+            setMessage(t('platforms.kiro.auth.builderId.completeInBrowser'))
 
             // 优先使用完整的验证 URL（携带 user_code）
             const urlToOpen = result.verificationUriComplete || result.verificationUri
@@ -113,7 +109,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
             startPolling(result.interval, result)
         } catch (e: any) {
             setStatus('error')
-            setMessage(e.message || (isEn ? 'Failed to start login' : '登录启动失败'))
+            setMessage(e.message || t('platforms.kiro.auth.builderId.loginFailed'))
             onError(e.message)
         }
     }
@@ -175,7 +171,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                 }
                     
                     setStatus('success')
-                    setMessage(isEn ? 'Login successful!' : '登录成功！')
+                    setMessage(t('platforms.kiro.auth.builderId.loginSuccess'))
                     onSuccess(kiroAccount)
                     setTimeout(onClose, 1000)
                 } else if (result.error) {
@@ -183,9 +179,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                     // pending 和 slow_down 会在后端处理，这里不会收到
                     clearInterval(pollRef.current!)
                     setStatus('error')
-                    setMessage(isEn 
-                        ? `Authorization failed: ${result.error}` 
-                        : `授权失败: ${result.error}`)
+                    setMessage(`${t('platforms.kiro.auth.builderId.authFailed')}: ${result.error}`)
                     onError(result.error)
                 }
             } catch (e: any) {
@@ -194,9 +188,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                 if (pollCount >= maxPolls) {
                     clearInterval(pollRef.current!)
                     setStatus('error')
-                    setMessage(isEn 
-                        ? 'Authorization timed out. Please try again.' 
-                        : '授权超时，请重试')
+                    setMessage(t('platforms.kiro.auth.builderId.authTimeout'))
                     onError('Authorization timed out')
                 }
                 // 其他错误继续轮询
@@ -253,12 +245,12 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                                         "text-sm font-medium",
                                         usePrivateMode ? 'text-foreground' : 'text-muted-foreground'
                                     )}>
-                                        {isEn ? 'Private/Incognito Mode' : '隐私/无痕模式'}
+                                        {t('accounts.privateMode')}
                                     </div>
                                     <div className="text-xs text-muted-foreground">
                                         {usePrivateMode 
-                                            ? (isEn ? 'Enabled' : '已启用') 
-                                            : (isEn ? 'Disabled' : '已禁用')}
+                                            ? t('platforms.kiro.auth.builderId.privateModeEnabled')
+                                            : t('platforms.kiro.auth.builderId.privateModeDisabled')}
                                     </div>
                                 </div>
                             </div>
@@ -282,7 +274,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                         onClick={handleStartLogin}
                     >
                         <ExternalLink className="h-4 w-4" />
-                        {isEn ? 'Login with AWS Builder ID' : '使用 AWS Builder ID 登录'}
+                        {t('platforms.kiro.auth.builderId.title')}
                     </Button>
                 </>
             )}
@@ -292,7 +284,7 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                 <div className="space-y-3 animate-in fade-in">
                     <div className="text-center p-4 rounded-lg border bg-muted/30">
                         <p className="text-xs text-muted-foreground mb-2">
-                            {isEn ? 'Your verification code:' : '您的验证码：'}
+                            {t('platforms.kiro.auth.builderId.verificationCode')}
                         </p>
                         <div className="flex items-center justify-center gap-2">
                             <code className="text-2xl font-bold tracking-widest">
@@ -314,10 +306,10 @@ export function BuilderIdMethod({ onSuccess, onError, onClose }: AddMethodProps)
                             }}
                         >
                             <ExternalLink className="mr-2 h-4 w-4" />
-                            {isEn ? 'Open Browser' : '打开浏览器'}
+                            {t('platforms.kiro.auth.builderId.openBrowser')}
                         </Button>
                         <Button variant="ghost" onClick={handleCancel}>
-                            {isEn ? 'Cancel' : '取消'}
+                            {t('platforms.kiro.auth.builderId.cancel')}
                         </Button>
                     </div>
                 </div>

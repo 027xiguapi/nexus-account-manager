@@ -91,9 +91,9 @@ export class KiroAccountService {
         if (targetAccount.credentials.refreshToken) {
             try {
                 const tokenResult = await invoke<{
-                    access_token: string
-                    refresh_token?: string
-                    expires_in: number
+                    accessToken: string
+                    refreshToken?: string
+                    expiresIn: number
                 }>('kiro_refresh_token', {
                     refreshToken: targetAccount.credentials.refreshToken,
                     clientId: targetAccount.credentials.clientId || '',
@@ -104,16 +104,16 @@ export class KiroAccountService {
                 await store.updateAccount(accountId, {
                     credentials: {
                         ...targetAccount.credentials,
-                        accessToken: tokenResult.access_token,
-                        refreshToken: tokenResult.refresh_token || targetAccount.credentials.refreshToken,
-                        expiresAt: now + (tokenResult.expires_in * 1000)
+                        accessToken: tokenResult.accessToken,
+                        refreshToken: tokenResult.refreshToken || targetAccount.credentials.refreshToken,
+                        expiresAt: now + (tokenResult.expiresIn * 1000)
                     }
                 })
 
                 // Update targetAccount reference with new credentials
-                targetAccount.credentials.accessToken = tokenResult.access_token
-                if (tokenResult.refresh_token) {
-                    targetAccount.credentials.refreshToken = tokenResult.refresh_token
+                targetAccount.credentials.accessToken = tokenResult.accessToken
+                if (tokenResult.refreshToken) {
+                    targetAccount.credentials.refreshToken = tokenResult.refreshToken
                 }
 
                 console.log(`[Kiro Switch] Token refreshed successfully`)
@@ -190,9 +190,9 @@ export class KiroAccountService {
 
             // 1. 刷新 token
             const tokenResult = await invoke<{
-                access_token: string
-                refresh_token?: string
-                expires_in: number
+                accessToken: string
+                refreshToken?: string
+                expiresIn: number
             }>('kiro_refresh_token', {
                 refreshToken: account.credentials.refreshToken,
                 clientId: account.credentials.clientId || '',
@@ -201,7 +201,7 @@ export class KiroAccountService {
 
             // 2. 获取最新配额
             const quotaResult = await invoke<any>('kiro_check_quota', {
-                accessToken: tokenResult.access_token
+                accessToken: tokenResult.accessToken
             })
 
             // 3. 更新账户数据
@@ -212,14 +212,14 @@ export class KiroAccountService {
             await store.updateAccount(account.id, {
                 credentials: {
                     ...account.credentials,
-                    accessToken: tokenResult.access_token,
-                    refreshToken: tokenResult.refresh_token || account.credentials.refreshToken,
-                    expiresAt: now + (tokenResult.expires_in * 1000)
+                    accessToken: tokenResult.accessToken,
+                    refreshToken: tokenResult.refreshToken || account.credentials.refreshToken,
+                    expiresAt: now + (tokenResult.expiresIn * 1000)
                 },
                 usage: {
-                    current: quotaResult.current_usage || 0,
-                    limit: quotaResult.total_limit || 25,
-                    percentUsed: quotaResult.percent_used || 0,
+                    current: quotaResult.currentUsage || 0,
+                    limit: quotaResult.totalLimit || 25,
+                    percentUsed: quotaResult.percentUsed || 0,
                     lastUpdated: now,
                     baseLimit: quotaResult.baseLimit,
                     baseCurrent: quotaResult.baseCurrent,
@@ -231,22 +231,22 @@ export class KiroAccountService {
                     resourceDetail: quotaResult.resourceDetail
                 },
                 subscription: {
-                    type: quotaResult.subscription_type || 'Free',
-                    title: quotaResult.subscription_title,
+                    type: quotaResult.subscriptionType || 'Free',
+                    title: quotaResult.subscriptionTitle,
                     expiresAt: quotaResult.subscriptionExpiresAt,
-                    daysRemaining: quotaResult.days_remaining,
+                    daysRemaining: quotaResult.daysRemaining,
                     autoRenew: quotaResult.subscriptionAutoRenew
                 },
                 email: quotaResult.email || account.email,
-                userId: quotaResult.user_id,
+                userId: quotaResult.userId,
                 lastUsedAt: now
             })
 
             return {
                 success: true,
-                accessToken: tokenResult.access_token,
-                refreshToken: tokenResult.refresh_token,
-                expiresIn: tokenResult.expires_in
+                accessToken: tokenResult.accessToken,
+                refreshToken: tokenResult.refreshToken,
+                expiresIn: tokenResult.expiresIn
             }
         } catch (error) {
             return {

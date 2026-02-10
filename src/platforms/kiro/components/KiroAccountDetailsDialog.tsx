@@ -31,7 +31,7 @@ export function KiroAccountDetailsDialog({ account, open, onClose }: KiroAccount
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>{t('accounts.details')}</DialogTitle>
+                    <DialogTitle>{t('common.details')}</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6">
@@ -42,7 +42,7 @@ export function KiroAccountDetailsDialog({ account, open, onClose }: KiroAccount
                         <div className="grid gap-3">
                             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                                 <div className="space-y-1">
-                                    <p className="text-xs text-muted-foreground">{t('accounts.email')}</p>
+                                    <p className="text-xs text-muted-foreground">{t('common.email')}</p>
                                     <p className="text-sm font-mono">{account.email}</p>
                                 </div>
                                 <Button
@@ -61,7 +61,7 @@ export function KiroAccountDetailsDialog({ account, open, onClose }: KiroAccount
                             {account.name && (
                                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                                     <div className="space-y-1">
-                                        <p className="text-xs text-muted-foreground">{t('accounts.name')}</p>
+                                        <p className="text-xs text-muted-foreground">{t('common.name')}</p>
                                         <p className="text-sm">{account.name}</p>
                                     </div>
                                 </div>
@@ -79,7 +79,7 @@ export function KiroAccountDetailsDialog({ account, open, onClose }: KiroAccount
 
                             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                                 <div className="space-y-1">
-                                    <p className="text-xs text-muted-foreground">{t('accounts.status')}</p>
+                                    <p className="text-xs text-muted-foreground">{t('common.status')}</p>
                                     <Badge className={cn(
                                         account.status === 'active' && 'bg-green-500',
                                         account.status === 'error' && 'bg-red-500',
@@ -101,7 +101,7 @@ export function KiroAccountDetailsDialog({ account, open, onClose }: KiroAccount
                             <div className="grid gap-3">
                                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                                     <div className="space-y-1">
-                                        <p className="text-xs text-muted-foreground">{t('accounts.type')}</p>
+                                        <p className="text-xs text-muted-foreground">{t('common.type')}</p>
                                         <p className="text-sm font-semibold">{account.subscription.type}</p>
                                     </div>
                                 </div>
@@ -109,7 +109,7 @@ export function KiroAccountDetailsDialog({ account, open, onClose }: KiroAccount
                                 {account.subscription.title && (
                                     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                                         <div className="space-y-1">
-                                            <p className="text-xs text-muted-foreground">{t('accounts.title')}</p>
+                                            <p className="text-xs text-muted-foreground">{t('common.title')}</p>
                                             <p className="text-sm">{account.subscription.title}</p>
                                         </div>
                                     </div>
@@ -179,7 +179,7 @@ export function KiroAccountDetailsDialog({ account, open, onClose }: KiroAccount
                                 {account.credentials.region && (
                                     <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                                         <div className="space-y-1">
-                                            <p className="text-xs text-muted-foreground">{t('accounts.region')}</p>
+                                            <p className="text-xs text-muted-foreground">{t('common.region')}</p>
                                             <p className="text-sm font-mono">{account.credentials.region}</p>
                                         </div>
                                     </div>

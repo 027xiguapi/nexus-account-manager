@@ -31,7 +31,47 @@
         },
         "kiro": {
             "name": "Kiro IDE",
-            "description": "Manage your Kiro IDE accounts and licenses"
+            "description": "Manage your Kiro IDE accounts and licenses",
+            "auth": {
+                "builderId": {
+                    "title": "Login with AWS Builder ID",
+                    "initializing": "Initializing...",
+                    "completeInBrowser": "Please complete authorization in browser",
+                    "loginSuccess": "Login successful!",
+                    "loginFailed": "Failed to start login",
+                    "verificationCode": "Your verification code:",
+                    "openBrowser": "Open Browser",
+                    "cancel": "Cancel",
+                    "authFailed": "Authorization failed",
+                    "authTimeout": "Authorization timed out. Please try again.",
+                    "browserOpenFailed": "Browser open failed",
+                    "tryingFallback": "Trying fallback...",
+                    "privateModeEnabled": "Enabled",
+                    "privateModeDisabled": "Disabled"
+                },
+                "tokenImport": {
+                    "ssoToken": "SSO Token",
+                    "oidcCredentials": "OIDC Credentials",
+                    "ssoTokensLabel": "SSO Tokens (one per line)",
+                    "oidcCredentialsLabel": "OIDC Credentials (JSON)",
+                    "requiredFields": "Required fields: clientId, clientSecret, refreshToken. Supports both camelCase and snake_case.",
+                    "import": "Import",
+                    "processing": "Processing {{count}} tokens...",
+                    "processingCredentials": "Processing {{count}} credentials...",
+                    "addedSuccess": "Added {{count}} accounts!",
+                    "addedPartial": "Added {{success}}/{{total}} accounts",
+                    "allFailed": "All imports failed",
+                    "enterToken": "Please enter token(s)",
+                    "invalidJson": "Invalid JSON format",
+                    "tokenRefreshFailed": "Token refresh failed. Please check if credentials are correct or expired.",
+                    "missingField": "Missing required field. Please check JSON format."
+                },
+                "social": {
+                    "loggingIn": "Logging in with {{provider}}...",
+                    "loginSuccess": "Login successful!",
+                    "loginFailed": "Login failed"
+                }
+            }
         },
         "claude": {
             "name": "Claude",
@@ -75,7 +115,13 @@
         "apply": "Apply",
         "actions": "Actions",
         "gridView": "Grid View",
-        "listView": "List View"
+        "listView": "List View",
+        "email": "Email",
+        "name": "Name",
+        "status": "Status",
+        "type": "Type",
+        "title": "Title",
+        "region": "Region"
     },
     "accounts": {
         "title": "Accounts",
@@ -88,7 +134,7 @@
         "banned": "Banned",
         "expired": "Expired",
         "doubleClickToSwitch": "Double-click to switch",
-        "status": {
+        "statusValues": {
             "active": "Active",
             "error": "Error",
             "refreshing": "Refreshing",
@@ -101,15 +147,24 @@
         "tokenExpiring": "Token Expiring",
         "tokenExpired": "Token Expired",
         "privateMode": "Private/Incognito Mode",
-        "privateModeDesc": "Open browser in private mode for authorization"
+        "privateModeDesc": "Open browser in private mode for authorization",
+        "basicInfo": "Basic Information",
+        "platform": "Platform",
+        "subscription": "Subscription",
+        "current": "Current",
+        "percentUsed": "Percent Used",
+        "lastUpdated": "Last Updated",
+        "credentials": "Credentials",
+        "expiresAt": "Expires At",
+        "timestamps": "Timestamps",
+        "createdAt": "Created At",
+        "lastUsedAt": "Last Used At",
+        "lastCheckedAt": "Last Checked At"
     },
     "dialog": {
         "addAccount": "Add New Account",
         "selectMethod": "Please select an add method",
-        "save": "Save Account",
-        "cancel": "Cancel",
-        "email": "Email",
-        "name": "Display Name (Optional)",
+        "displayName": "Display Name (Optional)",
         "accessToken": "Access Token",
         "sessionToken": "Session Token (Cookie)",
         "refreshToken": "Refresh Token",
@@ -130,16 +185,10 @@
         "tokenHint": "Tokens starting with 1// will be auto-detected"
     },
     "details": {
-        "title": "Account Details",
-        "basicInfo": "Basic Information",
         "tokenDevice": "Token & Device",
         "kiroDetails": "Kiro Details",
-        "email": "Email",
-        "name": "Name",
         "lastUsed": "Last Used",
         "created": "Created",
-        "usage": "Usage",
-        "subscription": "Subscription",
         "expires": "Expires",
         "quotaModels": "Quota Models"
     },
@@ -181,8 +230,6 @@
         "clipboardDesc": "Copy to clipboard",
         "includeCredentials": "Include credentials",
         "includeCredentialsDesc": "Include tokens for full import",
-        "copied": "Copied",
-        "copy": "Copy",
         "action": "Export"
     },
     "machineId": {
