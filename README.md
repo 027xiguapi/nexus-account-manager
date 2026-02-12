@@ -1,261 +1,241 @@
-# Nexus Account Manager
+﻿# Nexus Account Manager
 
 <div align="center">
 
 <img src="src-tauri/icons/icon.png" alt="Nexus Account Manager" width="120" />
 
-**Your AI Accounts, Unified**
+**统一管理你的 AI 账号**
 
-[English](./README.md) | [简体中文](./README_ZH.md)
+[English](./README_EN.md) | [简体中文](./README.md)
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](package.json)
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-orange.svg)](https://tauri.app/)
 [![React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev/)
 
-A unified multi-platform AI account management tool built with Tauri, React, and Rust.
+基于 Tauri、React 和 Rust 构建的统一多平台 AI 账号管理工具。
 
-[Features](#-features) • [Installation](#-installation) • [Development](#-development) • [Contributing](#-contributing)
+[功能特性](#-功能特性) • [安装](#-安装) • [开发](#-开发) • [贡献](#-贡献)
 
 </div>
 
 ---
 
-## ✨ Features
+## ✨ 功能特性
 
-### 🎯 Core Capabilities
+### �� 核心能力
 
-- **🔐 Multi-Platform Support**: Manage accounts across Antigravity, Kiro, Claude, Codex, and Gemini
-- **⚡ Quick Switching**: One-click account switching with automatic token refresh
-- **📊 Quota Monitoring**: Real-time usage tracking and quota management
-- **🔄 Auto Refresh**: Intelligent token refresh with expiration detection
-- **🏷️ Organization**: Tags, groups, and search for easy account management
-- **💾 Local Storage**: All data stored locally with optional backup/restore
+- **🔐 多平台支持**: 管理 Antigravity、Kiro、Claude、Codex 和 Gemini 等平台账号
+- **⚡ 快速切换**: 一键切换账号，自动刷新 Token
+- **📊 配额监控**: 实时追踪使用情况和配额管理
+- **🔄 自动刷新**: 智能 Token 刷新，自动检测过期
+- **🏷️ 组织管理**: 标签、分组和搜索，轻松管理账号
+- **💾 本地存储**: 所有数据本地存储，支持备份/恢复
 
-### 🔌 Plugin Architecture
+### 🔌 插件化架构
 
-- **Extensible Platform System**: Add new platforms with minimal code
-- **Modular Design**: Each platform is an independent, self-contained module
-- **Type-Safe**: Full TypeScript and Rust type safety throughout
-- **Hot Reload**: Development mode with instant updates
+- **可扩展平台系统**: 用最少的代码添加新平台
+- **模块化设计**: 每个平台都是独立的、自包含的模块
+- **类型安全**: 全栈 TypeScript 和 Rust 类型安全
+- **热重载**: 开发模式下即时更新
 
-### 🎨 Modern UI/UX
+### 🎨 现代化 UI/UX
 
-- **macOS-Inspired Design**: Clean, minimalist interface with attention to detail
-- **Dark/Light Theme**: Seamless theme switching with system preference detection
-- **Smooth Animations**: Powered by Framer Motion for fluid transitions
-- **Responsive Layout**: Optimized for all screen sizes and resolutions
-- **Accessibility**: WCAG-compliant components with keyboard navigation
+- **macOS 风格设计**: 简洁、极简的界面，注重细节
+- **深色/浅色主题**: 无缝主题切换，支持系统偏好检测
+- **流畅动画**: 由 Framer Motion 驱动的流畅过渡效果
+- **响应式布局**: 针对所有屏幕尺寸和分辨率优化
+- **无障碍访问**: 符合 WCAG 标准的组件，支持键盘导航
 
-### 🚀 Performance Optimized
+### �� 性能优化
 
-- **HTTP Client Pooling**: Reusable connections reduce latency by 50-67%
-- **Search Debouncing**: Smooth input with React 19's `useDeferredValue`
-- **Storage Optimization**: Debounced saves improve batch operations by 80%+
-- **Log Rotation**: Automatic log file management (10MB limit)
-- **Code Reusability**: Shared utilities reduce duplication by 40%
+- **HTTP 客户端池化**: 可复用连接减少延迟 50-67%
+- **搜索防抖**: 使用 React 19 的 useDeferredValue 实现流畅输入
+- **存储优化**: 防抖保存提升批量操作性能 80%+
+- **日志轮转**: 自动日志文件管理（10MB 限制）
+- **代码复用**: 共享工具减少重复代码 40%
 
-### 📦 Supported Platforms
+### 📦 支持的平台
 
 #### 🌌 Antigravity
-- Google/Anthropic AI Services
-- OAuth 2.0 Authorization
-- Token Import from IDE databases
-- Quota Monitoring
-- API Proxy Support
-- Account Switching
+- Google/Anthropic AI 服务
+- OAuth 2.0 授权
+- 从 IDE 数据库导入 Token
+- 配额监控
+- API 代理支持
+- 账号切换
 
 #### 🤖 Kiro IDE
-- Device Authorization Flow
-- SSO Token Import
-- OIDC Credentials Support
-- Machine ID Management
-- Auto Token Refresh
-- Usage & Subscription Tracking
-- Social Login (GitHub, Google, etc.)
+- 设备授权流程
+- SSO Token 导入
+- OIDC 凭证支持
+- 机器 ID 管理
+- 自动 Token 刷新
+- 使用量和订阅追踪
+- 社交登录（GitHub、Google 等）
 
-#### 🧠 Claude (Coming Soon)
+#### 🧠 Claude（即将推出）
 - Anthropic Claude API
-- Session Management
-- Usage Tracking
+- 会话管理
+- 使用量追踪
 
-#### 💻 Codex (Coming Soon)
+#### 💻 Codex（即将推出）
 - OpenAI Codex API
-- Project Management
+- 项目管理
 
-#### 🔮 Gemini (Coming Soon)
+#### 🔮 Gemini（即将推出）
 - Google Gemini API
-- Multi-modal Support
+- 多模态支持
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ 技术栈
 
-### Frontend
-- **React 19** - Latest UI framework with concurrent features
-- **TypeScript** - Type safety and better developer experience
-- **Tailwind CSS 4** - Utility-first styling with JIT compilation
-- **Zustand** - Lightweight state management
-- **React Router 7** - Client-side routing
-- **Radix UI** - Accessible component primitives
-- **Lucide React** - Beautiful icon library
-- **Framer Motion** - Production-ready animations
-- **i18next** - Internationalization (English & Chinese)
+### 前端
+- **React 19** - 最新的 UI 框架，支持并发特性
+- **TypeScript** - 类型安全和更好的开发体验
+- **Tailwind CSS 4** - 实用优先的样式，支持 JIT 编译
+- **Zustand** - 轻量级状态管理
+- **React Router 7** - 客户端路由
+- **Radix UI** - 无障碍组件原语
+- **Lucide React** - 精美的图标库
+- **Framer Motion** - 生产就绪的动画
+- **i18next** - 国际化（英文和中文）
 
-### Backend
-- **Rust** - Memory-safe systems programming
-- **Tauri 2** - Secure desktop framework
-- **Tokio** - Async runtime
-- **Reqwest** - HTTP client with connection pooling
-- **Serde** - Serialization/deserialization
-- **SQLite** (planned) - Local database
+### 后端
+- **Rust** - 内存安全的系统编程语言
+- **Tauri 2** - 安全的桌面应用框架
+- **Tokio** - 异步运行时
+- **Reqwest** - 支持连接池的 HTTP 客户端
+- **Serde** - 序列化/反序列化
+- **SQLite**（计划中）- 本地数据库
 
-### Development Tools
-- **Vite 7** - Lightning-fast build tool
-- **TypeScript 5.8** - Latest language features
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
+### 开发工具
+- **Vite 7** - 闪电般快速的构建工具
+- **TypeScript 5.8** - 最新的语言特性
+- **ESLint** - 代码检查
+- **Prettier** - 代码格式化
 
 ---
 
-## 📦 Installation
+## 📦 安装
 
-### Prerequisites
-- **Node.js** 18+ (LTS recommended)
-- **Rust** 1.70+ (latest stable)
-- **npm** or **yarn** or **pnpm**
+### 前置要求
+- **Node.js** 18+（推荐 LTS 版本）
+- **Rust** 1.70+（最新稳定版）
+- **npm** 或 **yarn** 或 **pnpm**
 
-### Quick Start
+### 快速开始
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/yourusername/nexus-account-manager.git
 cd nexus-account-manager
 
-# Install dependencies
+# 安装依赖
 npm install
 
-# Start development server
+# 启动开发服务器
 npm run tauri:dev
 
-# Build for production
+# 构建生产版本
 npm run tauri:build
 ```
 
-### Platform-Specific Setup
+### 平台特定设置
 
 #### Windows
 ```bash
-# Install Visual Studio Build Tools
+# 安装 Visual Studio Build Tools
 # https://visualstudio.microsoft.com/downloads/
 
-# Install WebView2 (usually pre-installed on Windows 10/11)
+# 安装 WebView2（Windows 10/11 通常已预装）
 ```
 
 #### macOS
 ```bash
-# Install Xcode Command Line Tools
+# 安装 Xcode 命令行工具
 xcode-select --install
 ```
 
 #### Linux
 ```bash
 # Debian/Ubuntu
-sudo apt install libwebkit2gtk-4.1-dev \
-  build-essential \
-  curl \
-  wget \
-  file \
-  libssl-dev \
-  libayatana-appindicator3-dev \
-  librsvg2-dev
+sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
 # Fedora
-sudo dnf install webkit2gtk4.1-devel \
-  openssl-devel \
-  curl \
-  wget \
-  file \
-  libappindicator-gtk3-devel \
-  librsvg2-devel
+sudo dnf install webkit2gtk4.1-devel openssl-devel curl wget file libappindicator-gtk3-devel librsvg2-devel
 
 # Arch
-sudo pacman -S webkit2gtk-4.1 \
-  base-devel \
-  curl \
-  wget \
-  file \
-  openssl \
-  libappindicator-gtk3 \
-  librsvg
+sudo pacman -S webkit2gtk-4.1 base-devel curl wget file openssl libappindicator-gtk3 librsvg
 ```
 
 ---
 
-## 🏗️ Project Structure
+## 🏗️ 项目结构
 
 ```
 nexus-account-manager/
-├── src/                          # React frontend
+├── src/                          # React 前端
 │   ├── components/
-│   │   ├── ui/                  # Base UI components (Radix UI)
-│   │   ├── layout/              # Layout components
-│   │   ├── common/              # Shared components
-│   │   ├── accounts/            # Account-related components
-│   │   └── dialogs/             # Dialog components
+│   │   ├── ui/                  # 基础 UI 组件（Radix UI）
+│   │   ├── layout/              # 布局组件
+│   │   ├── common/              # 共享组件
+│   │   ├── accounts/            # 账号相关组件
+│   │   └── dialogs/             # 对话框组件
 │   │
-│   ├── platforms/               # Platform modules (Plugin system)
-│   │   ├── antigravity/         # Antigravity platform
-│   │   ├── kiro/                # Kiro platform
-│   │   ├── claude/              # Claude platform
-│   │   ├── codex/               # Codex platform
-│   │   ├── gemini/              # Gemini platform
-│   │   └── registry.ts          # Platform registry
+│   ├── platforms/               # 平台模块（插件系统）
+│   │   ├── antigravity/         # Antigravity 平台
+│   │   ├── kiro/                # Kiro 平台
+│   │   ├── claude/              # Claude 平台
+│   │   ├── codex/               # Codex 平台
+│   │   ├── gemini/              # Gemini 平台
+│   │   └── registry.ts          # 平台注册中心
 │   │
-│   ├── pages/                   # Page components
-│   ├── stores/                  # Zustand state management
-│   ├── hooks/                   # Custom React hooks
-│   ├── types/                   # TypeScript type definitions
-│   ├── i18n/                    # Internationalization
-│   └── lib/                     # Utility functions
+│   ├── pages/                   # 页面组件
+│   ├── stores/                  # Zustand 状态管理
+│   ├── hooks/                   # 自定义 React Hooks
+│   ├── types/                   # TypeScript 类型定义
+│   ├── i18n/                    # 国际化
+│   └── lib/                     # 工具函数
 │
-├── src-tauri/                   # Rust backend
+├── src-tauri/                   # Rust 后端
 │   └── src/
-│       ├── core/                # Core modules
-│       │   ├── storage.rs      # Data storage with debouncing
-│       │   ├── oauth.rs        # OAuth 2.0 handling
-│       │   ├── kiro.rs         # Kiro-specific logic
-│       │   └── quota.rs        # Quota management
+│       ├── core/                # 核心模块
+│       │   ├── storage.rs      # 数据存储（支持防抖）
+│       │   ├── oauth.rs        # OAuth 2.0 处理
+│       │   ├── kiro.rs         # Kiro 特定逻辑
+│       │   └── quota.rs        # 配额管理
 │       │
-│       ├── commands/            # Tauri commands (Frontend ↔ Backend)
-│       │   ├── antigravity.rs  # Antigravity commands
-│       │   ├── kiro.rs         # Kiro commands
-│       │   └── machine.rs      # Machine ID commands
+│       ├── commands/            # Tauri 命令（前后端通信）
+│       │   ├── antigravity.rs  # Antigravity 命令
+│       │   ├── kiro.rs         # Kiro 命令
+│       │   └── machine.rs      # 机器 ID 命令
 │       │
-│       ├── utils/               # Utility modules
-│       │   ├── logger.rs       # Unified logging system
-│       │   ├── http.rs         # HTTP client with pooling
-│       │   ├── common.rs       # Shared utilities
-│       │   └── config.rs       # Configuration management
+│       ├── utils/               # 工具模块
+│       │   ├── logger.rs       # 统一日志系统
+│       │   ├── http.rs         # HTTP 客户端（支持连接池）
+│       │   ├── common.rs       # 共享工具
+│       │   └── config.rs       # 配置管理
 │       │
-│       └── lib.rs               # Main entry point
+│       └── lib.rs               # 主入口点
 │
-├── docs/                        # Documentation
-│   ├── PROJECT_RULES.md         # AI programming guidelines
-│   ├── ARCHITECTURE.md          # Architecture documentation
-│   ├── API_PLATFORMS_GUIDE.md   # Platform development guide
-│   └── OPTIMIZATION_COMPLETED.md # Performance optimization report
+├── docs/                        # 文档
+│   ├── PROJECT_RULES.md         # AI 编程指南
+│   ├── ARCHITECTURE.md          # 架构文档
+│   ├── API_PLATFORMS_GUIDE.md   # 平台开发指南
+│   └── OPTIMIZATION_COMPLETED.md # 性能优化报告
 │
-└── test/                        # Test data
+└── test/                        # 测试数据
 ```
 
 ---
 
-## 🔌 Adding a New Platform
+## 🔌 添加新平台
 
-Our plugin architecture makes it easy to add new platforms. Here's a complete example:
+我们的插件架构使添加新平台变得简单。以下是完整示例：
 
-### 1. Create Platform Module
+### 1. 创建平台模块
 
 ```typescript
 // src/platforms/myplatform/index.ts
@@ -268,12 +248,12 @@ export const myPlatformConfig: PlatformConfig = {
   name: 'My Platform',
   icon: Rocket,
   color: '#FF6B6B',
-  description: 'Manage your My Platform accounts',
+  description: '管理你的 My Platform 账号',
   
-  // Required: Account list component
+  // 必需：账号列表组件
   AccountList: MyPlatformAccountList,
   
-  // Optional: Feature flags
+  // 可选：功能标志
   features: {
     oauth: true,
     tokenImport: false,
@@ -283,7 +263,7 @@ export const myPlatformConfig: PlatformConfig = {
 }
 ```
 
-### 2. Create Components
+### 2. 创建组件
 
 ```typescript
 // src/platforms/myplatform/components/AccountList.tsx
@@ -304,22 +284,22 @@ export function MyPlatformAccountList() {
 }
 ```
 
-### 3. Add Authentication Methods
+### 3. 添加认证方法
 
 ```typescript
 // src/platforms/myplatform/methods/OAuthMethod.tsx
 export function MyPlatformOAuthMethod() {
   const handleOAuth = async () => {
-    // Your OAuth logic
+    // 你的 OAuth 逻辑
     const account = await invoke('myplatform_oauth')
     await addAccount(account)
   }
   
-  return <Button onClick={handleOAuth}>Connect with OAuth</Button>
+  return <Button onClick={handleOAuth}>使用 OAuth 连接</Button>
 }
 ```
 
-### 4. Register Platform
+### 4. 注册平台
 
 ```typescript
 // src/platforms/registry.ts
@@ -328,11 +308,11 @@ import { myPlatformConfig } from './myplatform'
 export const platforms: PlatformConfig[] = [
   antigravityConfig,
   kiroConfig,
-  myPlatformConfig, // ✅ Add here
+  myPlatformConfig, // ✅ 在这里添加
 ]
 ```
 
-### 5. Add Rust Commands (Optional)
+### 5. 添加 Rust 命令（可选）
 
 ```rust
 // src-tauri/src/commands/myplatform.rs
@@ -340,147 +320,147 @@ use tauri::command;
 
 #[command]
 pub async fn myplatform_oauth() -> Result<Account, String> {
-    // Your backend logic
+    // 你的后端逻辑
     Ok(account)
 }
 ```
 
-That's it! Your new platform is now fully integrated. 🎉
+就这样！你的新平台现在已完全集成。🎉
 
-For detailed guidelines, see [docs/API_PLATFORMS_GUIDE.md](./docs/API_PLATFORMS_GUIDE.md)
+详细指南请参阅 [docs/API_PLATFORMS_GUIDE.md](./docs/API_PLATFORMS_GUIDE.md)
 
 ---
 
-## 🤖 AI Programming Guidelines
+## 🤖 AI 编程指南
 
-This project follows **strict AI programming rules** to maintain code quality and consistency.
+本项目遵循**严格的 AI 编程规则**以保持代码质量和一致性。
 
-### For AI-Assisted Development
+### AI 辅助开发
 
-Before using any AI assistant (Claude, ChatGPT, Copilot, etc.), **include this statement**:
+在使用任何 AI 助手（Claude、ChatGPT、Copilot 等）之前，**请包含此声明**：
 
 ```markdown
-Please strictly follow all rules defined in #[[file:docs/PROJECT_RULES.md]] during development.
+请在开发过程中严格遵守 #[[file:docs/PROJECT_RULES.md]] 中定义的所有规则。
 ```
 
-### Key Rules
+### 关键规则
 
-- ✅ Use existing UI components from `src/components/ui/`
-- ✅ Use Zustand for state management
-- ✅ Use unified logging system in Rust (`log_info`, `log_warn`, etc.)
-- ✅ Follow the established project structure
-- ❌ Do NOT introduce new dependencies without approval
-- ❌ Do NOT modify core architecture
-- ❌ Do NOT use `println!` or `eprintln!` in Rust code
+- ✅ 使用 `src/components/ui/` 中的现有 UI 组件
+- ✅ 使用 Zustand 进行状态管理
+- ✅ 在 Rust 中使用统一日志系统（`log_info`、`log_warn` 等）
+- ✅ 遵循既定的项目结构
+- ❌ 未经批准不要引入新依赖
+- ❌ 不要修改核心架构
+- ❌ 不要在 Rust 代码中使用 `println!` 或 `eprintln!`
 
-For complete guidelines, see: **[docs/PROJECT_RULES.md](./docs/PROJECT_RULES.md)**
+完整指南请参阅：**[docs/PROJECT_RULES.md](./docs/PROJECT_RULES.md)**
 
 ---
 
-## 🧪 Development
+## 🧪 开发
 
-### Available Scripts
+### 可用脚本
 
 ```bash
-# Frontend development
-npm run dev              # Start Vite dev server
-npm run build            # Build frontend for production
+# 前端开发
+npm run dev              # 启动 Vite 开发服务器
+npm run build            # 构建生产版本前端
 
-# Tauri development
-npm run tauri:dev        # Start Tauri in development mode
-npm run tauri:build      # Build Tauri app for production
-npm run tauri:build:debug # Build with debug symbols
+# Tauri 开发
+npm run tauri:dev        # 以开发模式启动 Tauri
+npm run tauri:build      # 构建生产版本 Tauri 应用
+npm run tauri:build:debug # 构建带调试符号的版本
 
-# Code quality
-npm run lint             # Run ESLint
-npm run format           # Format code with Prettier
-npm run type-check       # Run TypeScript type checking
+# 代码质量
+npm run lint             # 运行 ESLint
+npm run format           # 使用 Prettier 格式化代码
+npm run type-check       # 运行 TypeScript 类型检查
 ```
 
-### Development Workflow
+### 开发工作流
 
-1. **Start Development Server**
+1. **启动开发服务器**
    ```bash
    npm run tauri:dev
    ```
-   This starts both the Vite dev server and Tauri app with hot reload.
+   这会同时启动 Vite 开发服务器和 Tauri 应用，支持热重载。
 
-2. **Make Changes**
-   - Frontend: Edit files in `src/`, changes reflect instantly
-   - Backend: Edit files in `src-tauri/src/`, app restarts automatically
+2. **进行更改**
+   - 前端：编辑 `src/` 中的文件，更改立即反映
+   - 后端：编辑 `src-tauri/src/` 中的文件，应用自动重启
 
-3. **Test Your Changes**
-   - Use the app to test functionality
-   - Check browser console for frontend logs
-   - Check terminal for backend logs
+3. **测试更改**
+   - 使用应用测试功能
+   - 检查浏览器控制台查看前端日志
+   - 检查终端查看后端日志
 
-4. **Build for Production**
+4. **构建生产版本**
    ```bash
    npm run tauri:build
    ```
-   Outputs are in `src-tauri/target/release/bundle/`
+   输出在 `src-tauri/target/release/bundle/`
 
-### Debugging
+### 调试
 
-#### Frontend
-- Open DevTools: `Ctrl+Shift+I` (Windows/Linux) or `Cmd+Option+I` (macOS)
-- React DevTools: Install browser extension
-- Zustand DevTools: Built-in state inspection
+#### 前端
+- 打开开发工具：`Ctrl+Shift+I`（Windows/Linux）或 `Cmd+Option+I`（macOS）
+- React DevTools：安装浏览器扩展
+- Zustand DevTools：内置状态检查
 
-#### Backend
-- Logs are in `~/.local/share/com.nexus.account-manager/logs/app.log`
-- Use `log_info!()`, `log_warn!()`, `log_error!()` for debugging
-- Attach debugger: `rust-lldb` or `rust-gdb`
+#### 后端
+- 日志位于 `~/.local/share/com.nexus.account-manager/logs/app.log`
+- 使用 `log_info!()`、`log_warn!()`、`log_error!()` 进行调试
+- 附加调试器：`rust-lldb` 或 `rust-gdb`
 
 ---
 
-## 🤝 Contributing
+## 🤝 贡献
 
-We welcome contributions! Here's how you can help:
+我们欢迎贡献！以下是你可以帮助的方式：
 
-### Ways to Contribute
+### 贡献方式
 
-- 🐛 **Report Bugs**: Open an issue with detailed reproduction steps
-- 💡 **Suggest Features**: Share your ideas in discussions
-- 📝 **Improve Documentation**: Fix typos, add examples, clarify instructions
-- 🔧 **Submit Pull Requests**: Fix bugs or implement features
+- 🐛 **报告 Bug**：提交包含详细复现步骤的 issue
+- 💡 **建议功能**：在讨论区分享你的想法
+- 📝 **改进文档**：修复错别字、添加示例、澄清说明
+- 🔧 **提交 Pull Request**：修复 bug 或实现功能
 
-### Contribution Guidelines
+### 贡献指南
 
-1. **Fork the Repository**
+1. **Fork 仓库**
    ```bash
    git clone https://github.com/yourusername/nexus-account-manager.git
    cd nexus-account-manager
    git checkout -b feature/your-feature-name
    ```
 
-2. **Follow Project Rules**
-   - Read [docs/PROJECT_RULES.md](./docs/PROJECT_RULES.md)
-   - Use existing patterns and conventions
-   - Write clean, documented code
+2. **遵循项目规则**
+   - 阅读 [docs/PROJECT_RULES.md](./docs/PROJECT_RULES.md)
+   - 使用现有的模式和约定
+   - 编写清晰、有文档的代码
 
-3. **Test Your Changes**
-   - Ensure the app builds without errors
-   - Test all affected functionality
-   - Add tests if applicable
+3. **测试你的更改**
+   - 确保应用无错误构建
+   - 测试所有受影响的功能
+   - 如适用，添加测试
 
-4. **Submit Pull Request**
-   - Write a clear description of changes
-   - Reference related issues
-   - Wait for review and address feedback
+4. **提交 Pull Request**
+   - 编写清晰的更改描述
+   - 引用相关 issue
+   - 等待审查并处理反馈
 
-### Code of Conduct
+### 行为准则
 
-- Be respectful and inclusive
-- Provide constructive feedback
-- Focus on the code, not the person
-- Help others learn and grow
+- 尊重和包容
+- 提供建设性反馈
+- 关注代码，而非个人
+- 帮助他人学习和成长
 
 ---
 
-## 👥 Contributors
+## 👥 贡献者
 
-Thanks to these wonderful people who have contributed to this project:
+感谢这些为本项目做出贡献的优秀人员：
 
 <table>
   <tr>
@@ -491,7 +471,7 @@ Thanks to these wonderful people who have contributed to this project:
         <sub><b>adnaan</b></sub>
       </a>
       <br />
-      <sub>Project Lead & Core Developer</sub>
+      <sub>项目负责人 & 核心开发者</sub>
     </td>
     <td align="center">
       <a href="https://github.com/027xiguapi">
@@ -500,106 +480,104 @@ Thanks to these wonderful people who have contributed to this project:
         <sub><b>xiguapi</b></sub>
       </a>
       <br />
-      <sub>Contributor</sub>
+      <sub>贡献者</sub>
     </td>
   </tr>
 </table>
 
-Want to see your name here? [Contribute to the project!](#-contributing)
+想看到你的名字在这里？[为项目做贡献！](#-贡献)
 
 ---
 
-## 📄 License
+## 📄 许可证
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
 
 ```
 MIT License
 
 Copyright (c) 2026 adnaan
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+特此免费授予任何获得本软件及相关文档文件（"软件"）副本的人
+不受限制地处理本软件的权利，包括但不限于使用、复制、修改、
+合并、发布、分发、再许可和/或销售本软件副本的权利，
+以及允许获得本软件的人这样做，但须符合以下条件：
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+上述版权声明和本许可声明应包含在本软件的所有副本或
+主要部分中。
 ```
 
 ---
 
-## 🙏 Acknowledgments
+## 🙏 致谢
 
-This project stands on the shoulders of giants:
+本项目站在巨人的肩膀上：
 
-### Inspiration
-- [Antigravity Manager](https://github.com/lbjlaq/Antigravity-Manager) - Original inspiration for multi-account management
-- [Kiro Account Manager](https://github.com/kiro-dev/kiro-account-manager) - Kiro platform integration patterns
+### 灵感来源
+- [Antigravity Manager](https://github.com/lbjlaq/Antigravity-Manager) - 多账号管理的原始灵感
+- [Kiro Account Manager](https://github.com/kiro-dev/kiro-account-manager) - Kiro 平台集成模式
 
-### Technologies
-- [Tauri](https://tauri.app/) - Secure desktop framework
-- [React](https://react.dev/) - UI library
-- [Rust](https://www.rust-lang.org/) - Systems programming language
-- [Radix UI](https://www.radix-ui.com/) - Accessible components
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
+### 技术
+- [Tauri](https://tauri.app/) - 安全的桌面应用框架
+- [React](https://react.dev/) - UI 库
+- [Rust](https://www.rust-lang.org/) - 系统编程语言
+- [Radix UI](https://www.radix-ui.com/) - 无障碍组件
+- [Tailwind CSS](https://tailwindcss.com/) - 实用优先的 CSS
 
-### Community
-- All our [contributors](#-contributors)
-- The Tauri Discord community
-- The Rust community
-
----
-
-## 📞 Support
-
-### Getting Help
-
-- 📖 **Documentation**: Check [docs/](./docs/) folder
-- 💬 **Discussions**: Ask questions in GitHub Discussions
-- 🐛 **Issues**: Report bugs in GitHub Issues
-- 📧 **Email**: Contact maintainers directly
-
-### Useful Links
-
-- [Project Documentation](./docs/)
-- [Architecture Guide](./docs/ARCHITECTURE.md)
-- [Platform Development Guide](./docs/API_PLATFORMS_GUIDE.md)
-- [Performance Optimization Report](./docs/OPTIMIZATION_COMPLETED.md)
+### 社区
+- 所有我们的[贡献者](#-贡献者)
+- Tauri Discord 社区
+- Rust 社区
 
 ---
 
-## 🗺️ Roadmap
+## 📞 支持
 
-### v1.1 (Q2 2026)
-- [ ] Claude platform integration
-- [ ] Codex platform integration
-- [ ] Gemini platform integration
-- [ ] Virtual scrolling for large account lists
-- [ ] Advanced search and filtering
+### 获取帮助
 
-### v1.2 (Q3 2026)
-- [ ] SQLite database migration
-- [ ] Cloud sync (optional)
-- [ ] Account groups and tags
-- [ ] Batch operations
-- [ ] Export/import improvements
+- 📖 **文档**：查看 [docs/](./docs/) 文件夹
+- 💬 **讨论**：在 GitHub Discussions 中提问
+- 🐛 **Issues**：在 GitHub Issues 中报告 bug
+- 📧 **邮件**：直接联系维护者
 
-### v2.0 (Q4 2026)
-- [ ] Plugin marketplace
-- [ ] Custom themes
-- [ ] Advanced automation
-- [ ] API for third-party integrations
-- [ ] Mobile companion app
+### 有用链接
+
+- [项目文档](./docs/)
+- [架构指南](./docs/ARCHITECTURE.md)
+- [平台开发指南](./docs/API_PLATFORMS_GUIDE.md)
+- [性能优化报告](./docs/OPTIMIZATION_COMPLETED.md)
+
+---
+
+## 🗺️ 路线图
+
+### v1.1（2026 年第二季度）
+- [ ] Claude 平台集成
+- [ ] Codex 平台集成
+- [ ] Gemini 平台集成
+- [ ] 大账号列表的虚拟滚动
+- [ ] 高级搜索和过滤
+
+### v1.2（2026 年第三季度）
+- [ ] SQLite 数据库迁移
+- [ ] 云同步（可选）
+- [ ] 账号分组和标签
+- [ ] 批量操作
+- [ ] 导出/导入改进
+
+### v2.0（2026 年第四季度）
+- [ ] 插件市场
+- [ ] 自定义主题
+- [ ] 高级自动化
+- [ ] 第三方集成 API
+- [ ] 移动伴侣应用
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by the Nexus Team**
+**由 Nexus 团队用 ❤️ 制作**
 
-[⬆ Back to Top](#nexus-account-manager)
+[⬆ 返回顶部](#nexus-account-manager)
 
 </div>
