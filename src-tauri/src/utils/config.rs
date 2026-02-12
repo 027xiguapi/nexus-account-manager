@@ -32,7 +32,6 @@ fn get_config_path() -> Result<PathBuf, String> {
     // 账户数据路径格式：{storage_dir}/accounts.json
     // 配置文件路径格式：{storage_dir}/config.json
     
-    // 尝试从环境变量或默认位置读取账户数据路径
     let accounts_path = if cfg!(debug_assertions) {
         // 开发模式：使用项目根目录下的 config 文件夹
         let current = std::env::current_dir()
@@ -50,7 +49,13 @@ fn get_config_path() -> Result<PathBuf, String> {
         root.join("config").join("accounts.json")
     } else {
         // 生产模式：使用系统应用数据目录
-        dirs::data_dir()
+        #[cfg(target_os = "windows")]
+        let data_dir = dirs::data_dir();
+        
+        #[cfg(not(target_os = "windows"))]
+        let data_dir = dirs::data_dir();
+        
+        data_dir
             .ok_or("Failed to get data directory")?
             .join(env!("CARGO_PKG_NAME"))
             .join("accounts.json")
