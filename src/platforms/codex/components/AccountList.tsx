@@ -1,4 +1,4 @@
-import { logError } from '@/lib/logger'
+﻿import { logError } from '@/lib/logger'
 import { useState, useMemo, useDeferredValue } from 'react'
 import { AddAccountDialog } from './AddAccountDialog'
 import { EditAccountDialog } from './EditAccountDialog'
@@ -6,8 +6,8 @@ import { ExportDialog } from '@/components/dialogs/ExportDialog'
 import { CodexAccountCard } from './CodexAccountCard'
 import { AccountTable } from '@/components/accounts/AccountTable'
 import { AccountSearch } from '@/components/accounts/AccountSearch'
-import { Card, CardContent } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import { useTranslation } from 'react-i18next'
 import { Download, LayoutGrid, List, Search } from 'lucide-react'
@@ -58,14 +58,7 @@ export function CodexAccountList() {
     setIsSwitching(true)
     
     try {
-      // 1. 将其他账户设置为非激活状态
-      const updatePromises = codexAccounts
-        .filter(acc => acc.id !== account.id && acc.isActive)
-        .map(acc => updateAccount(acc.id, { isActive: false }))
-      
-      await Promise.all(updatePromises)
-      
-      // 2. 调用 Rust 后端切换账户配置
+      // 1. 调用 Rust 后端切换账户配置（包含回填逻辑）
       const config = codexAccount.config
 
       if (!config) {
@@ -74,6 +67,13 @@ export function CodexAccountList() {
       }
       
       await invoke('switch_codex_account', { settings: JSON.stringify(config) })
+      
+      // 2. 将其他账户设置为非激活状态
+      const updatePromises = codexAccounts
+        .filter(acc => acc.id !== account.id && acc.isActive)
+        .map(acc => updateAccount(acc.id, { isActive: false }))
+      
+      await Promise.all(updatePromises)
       
       // 3. 更新当前账户为激活状态
       await updateAccount(account.id, { 

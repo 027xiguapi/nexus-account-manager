@@ -1,23 +1,19 @@
-/**
+﻿/**
  * Claude 平台 - JSON 导入方式
  * 
- * 支持从 JSON 格式导入 Claude API 配置
- * 格式参考: {
- *   "env": {
- *     "ANTHROPIC_BASE_URL": "https://api.anthropic.com",
- *     "ANTHROPIC_AUTH_TOKEN": "sk-xxx"
- *   },
- * }
+ * 支持从 Provider 预设或 JSON 格式导入 Claude API 配置
  */
 
 import { logError } from '@/lib/logger'
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Label } from '@/components/ui/Label'
-import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { claudeProviderPresets } from '../config/presets'
+import { ProviderCarousel, ProviderInfo } from '@/components/common/ProviderCarousel'
 import type { AddMethodProps } from '@/types/platform'
 import type { ClaudeAccount } from '@/types/account'
 
@@ -28,18 +24,12 @@ interface ClaudeConfig {
   env: {
     ANTHROPIC_BASE_URL?: string
     ANTHROPIC_AUTH_TOKEN?: string
-    NODE_ENV?: string
+    ANTHROPIC_MODEL?: string
+    ANTHROPIC_DEFAULT_HAIKU_MODEL?: string
+    ANTHROPIC_DEFAULT_SONNET_MODEL?: string
+    ANTHROPIC_DEFAULT_OPUS_MODEL?: string
     [key: string]: any
   }
-  permissions?: {
-    defaultMode?: string
-    allow?: string[]
-    deny?: string[]
-  }
-  hooks?: {
-    [key: string]: any
-  }
-  effortLevel?: string
   [key: string]: any
 }
 
@@ -54,17 +44,18 @@ export function JsonMethod({ onSuccess, onError, onClose, initialData, isEdit = 
 
   const [status, setStatus] = useState<Status>('idle')
   const [message, setMessage] = useState('')
-  const [baseUrl, setBaseUrl] = useState('https://api.anthropic.com')
-  const [authToken, setAuthToken] = useState('sk-xxx')
-  const [jsonInput, setJsonInput] = useState(initialData || `{
-    "env": {
-        "ANTHROPIC_BASE_URL": "https://api.anthropic.com",
-        "ANTHROPIC_AUTH_TOKEN": "sk-xxx"
-      }
-    }`)
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('')
+  const [baseUrl, setBaseUrl] = useState('')
+  const [authToken, setAuthToken] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [isUpdatingFromJson, setIsUpdatingFromJson] = useState(false)
-  const [isUpdatingFromInputs, setIsUpdatingFromInputs] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  
+  // 模型配置
+  const [mainModel, setMainModel] = useState('')
+  const [reasoningModel, setReasoningModel] = useState('')
+  const [haikuModel, setHaikuModel] = useState('')
+  const [sonnetModel, setSonnetModel] = useState('')
+  const [opusModel, setOpusModel] = useState('')
 
   // 初始化编辑模式数据
   useEffect(() => {
@@ -72,9 +63,13 @@ export function JsonMethod({ onSuccess, onError, onClose, initialData, isEdit = 
       try {
         const data = JSON.parse(initialData)
         if (data.config?.env) {
-          setBaseUrl(data.config.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com')
-          setAuthToken(data.config.env.ANTHROPIC_AUTH_TOKEN || 'sk-xxx')
-          setJsonInput(JSON.stringify(data.config, null, 2))
+          setBaseUrl(data.config.env.ANTHROPIC_BASE_URL || '')
+          setAuthToken(data.config.env.ANTHROPIC_AUTH_TOKEN || '')
+          setMainModel(data.config.env.ANTHROPIC_MODEL || '')
+          setReasoningModel(data.config.env.ANTHROPIC_REASONING_MODEL || '')
+          setHaikuModel(data.config.env.ANTHROPIC_DEFAULT_HAIKU_MODEL || '')
+          setSonnetModel(data.config.env.ANTHROPIC_DEFAULT_SONNET_MODEL || '')
+          setOpusModel(data.config.env.ANTHROPIC_DEFAULT_OPUS_MODEL || '')
         }
       } catch (e) {
         logError('Failed to parse initial data:', e)
@@ -82,106 +77,25 @@ export function JsonMethod({ onSuccess, onError, onClose, initialData, isEdit = 
     }
   }, [initialData, isEdit])
 
-  // 从 JSON 中提取 baseUrl 和 authToken（JSON -> 输入框）
-  useEffect(() => {
-    if (!jsonInput.trim() || isUpdatingFromInputs) return
-
-    try {
-      const config: ClaudeConfig = JSON.parse(jsonInput)
-      if (config.env) {
-        setIsUpdatingFromJson(true)
-        if (config.env.ANTHROPIC_BASE_URL && config.env.ANTHROPIC_BASE_URL !== baseUrl) {
-          setBaseUrl(config.env.ANTHROPIC_BASE_URL)
-        }
-        if (config.env.ANTHROPIC_AUTH_TOKEN && config.env.ANTHROPIC_AUTH_TOKEN !== authToken) {
-          setAuthToken(config.env.ANTHROPIC_AUTH_TOKEN)
-        }
-        setTimeout(() => setIsUpdatingFromJson(false), 0)
-      }
-    } catch {
-      // JSON 解析失败时不做处理
-    }
-  }, [jsonInput])
-
-  // 当 baseUrl 或 authToken 改变时，更新 JSON（输入框 -> JSON）
-  useEffect(() => {
-    if (!jsonInput.trim() || isUpdatingFromJson) return
-
-    try {
-      const config: ClaudeConfig = JSON.parse(jsonInput)
-      if (config.env) {
-        setIsUpdatingFromInputs(true)
-        config.env.ANTHROPIC_BASE_URL = baseUrl
-        config.env.ANTHROPIC_AUTH_TOKEN = authToken
-        setJsonInput(JSON.stringify(config, null, 2))
-        setTimeout(() => setIsUpdatingFromInputs(false), 0)
-      }
-    } catch {
-      // JSON 解析失败时不做处理
-    }
-  }, [baseUrl, authToken])
-
-  const validateJsonStructure = (config: ClaudeConfig): void => {
-    // 验证必需字段
-    if (!config.env) {
-      throw new Error(isEn ? 'Missing required field: "env"' : '缺少必需字段："env"')
-    }
-
-    if (!config.env.ANTHROPIC_AUTH_TOKEN && !authToken) {
-      throw new Error(isEn 
-        ? 'ANTHROPIC_AUTH_TOKEN is required' 
-        : 'ANTHROPIC_AUTH_TOKEN 是必需的')
-    }
-
-    // 验证 permissions 结构（如果存在）
-    if (config.permissions) {
-      const { defaultMode, allow, deny } = config.permissions
-      
-      if (defaultMode && typeof defaultMode !== 'string') {
-        throw new Error(isEn 
-          ? 'permissions.defaultMode must be a string' 
-          : 'permissions.defaultMode 必须是字符串')
-      }
-
-      if (allow && !Array.isArray(allow)) {
-        throw new Error(isEn 
-          ? 'permissions.allow must be an array' 
-          : 'permissions.allow 必须是数组')
-      }
-
-      if (deny && !Array.isArray(deny)) {
-        throw new Error(isEn 
-          ? 'permissions.deny must be an array' 
-          : 'permissions.deny 必须是数组')
-      }
-    }
-
-    // 验证 hooks 结构（如果存在）
-    if (config.hooks && typeof config.hooks !== 'object') {
-      throw new Error(isEn 
-        ? 'hooks must be an object' 
-        : 'hooks 必须是对象')
+  // 当选择预设时，自动填充配置
+  const handlePresetChange = (presetId: string) => {
+    setSelectedPresetId(presetId)
+    const preset = claudeProviderPresets.find((p) => p.id === presetId)
+    if (preset) {
+      setBaseUrl(preset.config.env.ANTHROPIC_BASE_URL || '')
+      // 自动填充预设的模型配置
+      setMainModel(preset.config.env.ANTHROPIC_MODEL || '')
+      setHaikuModel(preset.config.env.ANTHROPIC_DEFAULT_HAIKU_MODEL || '')
+      setSonnetModel(preset.config.env.ANTHROPIC_DEFAULT_SONNET_MODEL || '')
+      setOpusModel(preset.config.env.ANTHROPIC_DEFAULT_OPUS_MODEL || '')
+      // 不自动填充 API Key，让用户手动输入
     }
   }
 
   const handleSubmit = async () => {
-    // 验证输入框
-    if (!baseUrl.trim()) {
-      setStatus('error')
-      setMessage(isEn ? 'ANTHROPIC_BASE_URL is required' : 'ANTHROPIC_BASE_URL 是必需的')
-      return
-    }
-
     if (!authToken.trim()) {
       setStatus('error')
-      setMessage(isEn ? 'ANTHROPIC_AUTH_TOKEN is required' : 'ANTHROPIC_AUTH_TOKEN 是必需的')
-      return
-    }
-
-    const trimmed = jsonInput.trim()
-    if (!trimmed) {
-      setStatus('error')
-      setMessage(isEn ? 'Please enter JSON configuration' : '请输入 JSON 配置')
+      setMessage(isEn ? 'API Key is required' : 'API Key 是必需的')
       return
     }
 
@@ -189,28 +103,41 @@ export function JsonMethod({ onSuccess, onError, onClose, initialData, isEdit = 
     setMessage(isEn ? 'Processing...' : '正在处理...')
 
     try {
-      // 解析 JSON
-      const config: ClaudeConfig = JSON.parse(trimmed)
+      const selectedPreset = claudeProviderPresets.find((p) => p.id === selectedPresetId)
       
-      // 验证 JSON 结构完整性
-      validateJsonStructure(config)
+      // 构建配置对象
+      const config: ClaudeConfig = {
+        env: {
+          ...(selectedPreset?.config.env || {}),
+          ANTHROPIC_BASE_URL: baseUrl.trim() || undefined,
+          ANTHROPIC_AUTH_TOKEN: authToken.trim(),
+          // 添加模型配置（如果用户填写了）
+          ANTHROPIC_MODEL: mainModel.trim() || undefined,
+          ANTHROPIC_REASONING_MODEL: reasoningModel.trim() || undefined,
+          ANTHROPIC_DEFAULT_HAIKU_MODEL: haikuModel.trim() || undefined,
+          ANTHROPIC_DEFAULT_SONNET_MODEL: sonnetModel.trim() || undefined,
+          ANTHROPIC_DEFAULT_OPUS_MODEL: opusModel.trim() || undefined,
+        },
+      }
 
-      // 合并输入框的值到 config.env
-      config.env.ANTHROPIC_BASE_URL = baseUrl.trim()
-      config.env.ANTHROPIC_AUTH_TOKEN = authToken.trim()
+      // 移除空值
+      Object.keys(config.env).forEach(key => {
+        if (!config.env[key]) {
+          delete config.env[key]
+        }
+      })
 
       // 创建账号对象
       const account: ClaudeAccount = {
         id: crypto.randomUUID(),
         platform: 'claude',
-        email: extractEmailFromUrl(baseUrl) || 'claude@api',
-        name: extractNameFromUrl(baseUrl) || 'Claude API',
+        email: extractEmailFromUrl(baseUrl) || selectedPreset?.name || 'claude@api',
+        name: selectedPreset?.name || extractNameFromUrl(baseUrl) || 'Claude API',
         isActive: false,
         lastUsedAt: Date.now(),
         createdAt: Date.now(),
-        // authToken: authToken.trim(),
-        // baseUrl: baseUrl.trim(),
-        config: config, // 保存完整配置
+        providerId: selectedPresetId || undefined,
+        config: config,
       }
 
       onSuccess(account)
@@ -223,7 +150,7 @@ export function JsonMethod({ onSuccess, onError, onClose, initialData, isEdit = 
 
     } catch (e: any) {
       setStatus('error')
-      setMessage(e.message || (isEn ? 'Invalid JSON format' : 'JSON 格式错误'))
+      setMessage(e.message || (isEn ? 'Failed to add account' : '添加账号失败'))
       onError(e.message)
     }
   }
@@ -249,83 +176,192 @@ export function JsonMethod({ onSuccess, onError, onClose, initialData, isEdit = 
     }
   }
 
+  const selectedPreset = claudeProviderPresets.find((p) => p.id === selectedPresetId)
+
   return (
-    <div className="space-y-4">
-      {/* ANTHROPIC_BASE_URL 输入框 */}
-      <div className="space-y-2">
-        <Label htmlFor="base-url">
-          ANTHROPIC_BASE_URL <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          id="base-url"
-          type="text"
-          placeholder="https://api.anthropic.com"
-          value={baseUrl}
-          onChange={(e) => setBaseUrl(e.target.value)}
-          disabled={status === 'processing'}
-        />
-      </div>
-
-      {/* ANTHROPIC_AUTH_TOKEN 输入框 */}
-      <div className="space-y-2">
-        <Label htmlFor="auth-token">
-          ANTHROPIC_AUTH_TOKEN <span className="text-red-500">*</span>
-        </Label>
-        <div className="relative">
-          <Input
-            id="auth-token"
-            type={showPassword ? "text" : "password"}
-            placeholder="sk-xxx"
-            value={authToken}
-            onChange={(e) => setAuthToken(e.target.value)}
-            disabled={status === 'processing'}
-            className="pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            disabled={status === 'processing'}
-          >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* JSON 配置输入框 */}
-      <div className="space-y-2">
+    <div className="space-y-6">
+      {/* Provider 预设选择 - 统一轮播 */}
+      <div className="space-y-3">
         <Label>
-          {isEn ? 'JSON Configuration' : 'JSON 配置'} <span className="text-red-500">*</span>
+          {isEn ? 'Select Provider' : '选择供应商'} <span className="text-red-500">*</span>
         </Label>
-        <textarea
-          className="w-full h-48 rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
-          placeholder={`{
-  "env": {
-    "ANTHROPIC_BASE_URL": "https://api.anthropic.com",
-    "ANTHROPIC_AUTH_TOKEN": "sk-xxx"
-  }
-}`}
-          value={jsonInput}
-          onChange={(e) => setJsonInput(e.target.value)}
-          disabled={status === 'processing'}
+        
+        <ProviderCarousel
+          providers={claudeProviderPresets}
+          selectedId={selectedPresetId}
+          onSelect={handlePresetChange}
+          isEn={isEn}
         />
       </div>
 
-      <Button
-        className="w-full"
-        onClick={handleSubmit}
-        disabled={status === 'processing' || !baseUrl.trim() || !authToken.trim() || !jsonInput.trim()}
-      >
-        {status === 'processing' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEdit 
-          ? (isEn ? 'Update Account' : '更新账号')
-          : (isEn ? 'Add Account' : '添加账号')
-        }
-      </Button>
+      {/* 选中后显示详细信息和配置 */}
+      {selectedPresetId && (
+        <>
+          {/* 供应商详细信息 */}
+          {selectedPreset && (
+            <ProviderInfo provider={selectedPreset} isEn={isEn} />
+          )}
+
+          {/* Base URL（自定义时可编辑） */}
+          {selectedPresetId === 'custom' && (
+            <div className="space-y-2">
+              <Label htmlFor="base-url">
+                Base URL <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="base-url"
+                type="text"
+                placeholder="https://api.anthropic.com"
+                value={baseUrl}
+                onChange={(e) => setBaseUrl(e.target.value)}
+                disabled={status === 'processing'}
+              />
+            </div>
+          )}
+
+          {/* API Key */}
+          <div className="space-y-2">
+            <Label htmlFor="auth-token">
+              API Key <span className="text-red-500">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                id="auth-token"
+                type={showPassword ? "text" : "password"}
+                placeholder={isEn ? 'Enter your API key' : '输入你的 API Key'}
+                value={authToken}
+                onChange={(e) => setAuthToken(e.target.value)}
+                disabled={status === 'processing'}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                disabled={status === 'processing'}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Advanced Settings - Model Configuration */}
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span>{isEn ? 'Advanced Settings' : '高级设置'}</span>
+              <span className={cn("transition-transform", showAdvanced && "rotate-180")}>▼</span>
+            </button>
+
+            {showAdvanced && (
+              <div className="space-y-4 p-4 rounded-lg border bg-muted/30">
+                <div className="text-xs text-muted-foreground">
+                  {isEn 
+                    ? 'Optional: Specify default Claude models. Leave empty to use system defaults.'
+                    : '可选：指定默认使用的 Claude 模型，留空则使用系统默认。'
+                  }
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Main Model */}
+                  <div className="space-y-2">
+                    <Label htmlFor="main-model">
+                      {isEn ? 'Main Model' : '主模型'}
+                    </Label>
+                    <Input
+                      id="main-model"
+                      type="text"
+                      value={mainModel}
+                      onChange={(e) => setMainModel(e.target.value)}
+                      placeholder="claude-sonnet-4.5"
+                      disabled={status === 'processing'}
+                    />
+                  </div>
+
+                  {/* Reasoning Model */}
+                  <div className="space-y-2">
+                    <Label htmlFor="reasoning-model">
+                      {isEn ? 'Reasoning Model' : '推理模型'}
+                    </Label>
+                    <Input
+                      id="reasoning-model"
+                      type="text"
+                      value={reasoningModel}
+                      onChange={(e) => setReasoningModel(e.target.value)}
+                      placeholder="claude-opus-4.5"
+                      disabled={status === 'processing'}
+                    />
+                  </div>
+
+                  {/* Haiku Default Model */}
+                  <div className="space-y-2">
+                    <Label htmlFor="haiku-model">
+                      {isEn ? 'Haiku Default Model' : 'Haiku 默认模型'}
+                    </Label>
+                    <Input
+                      id="haiku-model"
+                      type="text"
+                      value={haikuModel}
+                      onChange={(e) => setHaikuModel(e.target.value)}
+                      placeholder="claude-haiku-4.5"
+                      disabled={status === 'processing'}
+                    />
+                  </div>
+
+                  {/* Sonnet Default Model */}
+                  <div className="space-y-2">
+                    <Label htmlFor="sonnet-model">
+                      {isEn ? 'Sonnet Default Model' : 'Sonnet 默认模型'}
+                    </Label>
+                    <Input
+                      id="sonnet-model"
+                      type="text"
+                      value={sonnetModel}
+                      onChange={(e) => setSonnetModel(e.target.value)}
+                      placeholder="claude-sonnet-4.5"
+                      disabled={status === 'processing'}
+                    />
+                  </div>
+
+                  {/* Opus Default Model */}
+                  <div className="space-y-2">
+                    <Label htmlFor="opus-model">
+                      {isEn ? 'Opus Default Model' : 'Opus 默认模型'}
+                    </Label>
+                    <Input
+                      id="opus-model"
+                      type="text"
+                      value={opusModel}
+                      onChange={(e) => setOpusModel(e.target.value)}
+                      placeholder="claude-opus-4.5"
+                      disabled={status === 'processing'}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Button
+            className="w-full"
+            onClick={handleSubmit}
+            disabled={status === 'processing' || !authToken.trim() || (selectedPresetId === 'custom' && !baseUrl.trim())}
+          >
+            {status === 'processing' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isEdit 
+              ? (isEn ? 'Update Account' : '更新账号')
+              : (isEn ? 'Add Account' : '添加账号')
+            }
+          </Button>
+        </>
+      )}
 
       {/* Status Message */}
       {message && (
@@ -341,21 +377,6 @@ export function JsonMethod({ onSuccess, onError, onClose, initialData, isEdit = 
           <span>{message}</span>
         </div>
       )}
-
-      {/* Format Hint */}
-      <div className="text-xs text-muted-foreground space-y-1 p-3 bg-muted/30 rounded-lg">
-        <p className="font-semibold">{isEn ? 'Required JSON fields:' : 'JSON 必需字段：'}</p>
-        <ul className="list-disc list-inside space-y-0.5 ml-2">
-          <li>env {isEn ? '(object, required)' : '（对象，必需）'}</li>
-        </ul>
-        <p className="font-semibold mt-2">{isEn ? 'Optional JSON fields:' : 'JSON 可选字段：'}</p>
-        <ul className="list-disc list-inside space-y-0.5 ml-2">
-          <li>model {isEn ? '(string)' : '（字符串）'}</li>
-          <li>permissions {isEn ? '(object with defaultMode, allow, deny)' : '（对象，包含 defaultMode、allow、deny）'}</li>
-          <li>hooks {isEn ? '(object)' : '（对象）'}</li>
-          <li>effortLevel {isEn ? '(string)' : '（字符串）'}</li>
-        </ul>
-      </div>
     </div>
   )
 }

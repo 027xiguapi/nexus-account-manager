@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Gemini 添加/修改对话框
  * 
  * 直接使用 JSON 导入方式
@@ -6,8 +6,8 @@
 
 import { logError } from '@/lib/logger'
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/Dialog'
-import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/usePlatformStore'
@@ -44,15 +44,15 @@ export function AddAccountDialog() {
                 </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-[600px] border-border bg-card text-card-foreground shadow-2xl">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col border-border bg-card text-card-foreground shadow-2xl">
+                <DialogHeader className="flex-shrink-0">
                     <DialogTitle className="text-xl font-bold">
                         {t('dialog.addAccount')}
                     </DialogTitle>
                 </DialogHeader>
 
-                {/* JSON 导入方式 */}
-                <div className="mt-4">
+                {/* JSON 导入方式 - 可滚动区域 */}
+                <div className="flex-1 overflow-y-auto pr-2 -mr-2">
                     <JsonMethod
                         platform="gemini"
                         onSuccess={handleSuccess}

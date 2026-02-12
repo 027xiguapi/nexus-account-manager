@@ -190,6 +190,13 @@ pub fn run() {
             // Gemini 命令
             gemini::switch_gemini_account,
             gemini::get_gemini_config,
+            // Provider 命令
+            commands::provider::get_claude_provider_config,
+            commands::provider::apply_claude_provider,
+            commands::provider::get_codex_provider_config,
+            commands::provider::apply_codex_provider,
+            commands::provider::get_gemini_provider_config,
+            commands::provider::apply_gemini_provider,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

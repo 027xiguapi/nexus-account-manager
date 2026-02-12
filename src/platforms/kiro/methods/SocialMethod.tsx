@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Kiro 平台 - 社交登录方式
  * 
  * 支持 Google 和 GitHub 登录
  */
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { invoke } from '@tauri-apps/api/core'

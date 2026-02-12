@@ -126,11 +126,17 @@ export interface ClaudeEnvConfig {
     "ANTHROPIC_API_KEY"?: string
     "ANTHROPIC_AUTH_TOKEN"?: string
     "ANTHROPIC_BASE_URL"?: string
+    "ANTHROPIC_MODEL"?: string
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL"?: string
+    "ANTHROPIC_DEFAULT_SONNET_MODEL"?: string
+    "ANTHROPIC_DEFAULT_OPUS_MODEL"?: string
+    [key: string]: any
   }
 }
 
 export interface ClaudeAccount extends BaseAccount {
     platform: 'claude';
+    providerId?: string;  // 关联的 Provider ID
     config: ClaudeEnvConfig;
 }
 
@@ -139,11 +145,14 @@ export interface CodexEnvConfig {
   env: {
     OPENAI_API_KEY?: string
     OPENAI_BASE_URL?: string
+    OPENAI_MODEL?: string
+    [key: string]: any
   }
 }
 
 export interface CodexAccount extends BaseAccount {
     platform: 'codex';
+    providerId?: string;  // 关联的 Provider ID
     config: CodexEnvConfig;
 }
 
@@ -154,11 +163,13 @@ export interface GeminiEnvConfig {
     GOOGLE_API_KEY?: string
     GEMINI_MODEL?: string
     GOOGLE_GEMINI_BASE_URL?: string
+    [key: string]: any
   }
 }
 
 export interface GeminiAccount extends BaseAccount {
     platform: 'gemini';
+    providerId?: string;  // 关联的 Provider ID
     config: GeminiEnvConfig;
 }
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Codex 编辑账号对话框
  * 
  * 使用 JSON 方式编辑账号配置
@@ -6,7 +6,7 @@
 
 import { logError } from '@/lib/logger'
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import { JsonMethod } from '../methods/JsonMethod'

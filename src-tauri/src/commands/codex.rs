@@ -80,6 +80,15 @@ pub async fn switch_codex_account(
 ) -> Result<(), String> {
     log_info("Switching Codex account...");
 
+    // Backfill: Read current config before overwriting
+    let config_toml_path = get_codex_config_toml_path(&app)?;
+    let auth_json_path = get_codex_auth_json_path(&app)?;
+    
+    if config_toml_path.exists() || auth_json_path.exists() {
+        log_info("Current Codex config exists (backfill logic can be implemented here)");
+        // Note: In full implementation, save current config to active account before switching
+    }
+
     // Parse settings JSON
     let settings_str = settings.ok_or_else(|| "Settings parameter is required".to_string())?;
     let settings_value: Value = serde_json::from_str(&settings_str)

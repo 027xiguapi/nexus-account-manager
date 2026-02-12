@@ -1,6 +1,6 @@
 import { X, Minus, Square } from 'lucide-react'
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 
 export function TitleBar() {
   const appWindow = getCurrentWindow()

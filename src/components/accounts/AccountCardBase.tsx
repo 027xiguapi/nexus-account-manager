@@ -4,7 +4,7 @@
  */
 import { memo, useState, ReactNode } from 'react'
 import { Card, CardContent } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { toast } from '@/lib/toast'
 import { useTranslation } from 'react-i18next'

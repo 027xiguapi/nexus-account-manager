@@ -6,9 +6,9 @@
 
 import { logError, logInfo, logWarn } from '@/lib/logger'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Label } from '@/components/ui/Label'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ExternalLink, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { listen } from '@tauri-apps/api/event'

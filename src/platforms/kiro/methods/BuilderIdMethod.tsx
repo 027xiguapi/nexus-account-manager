@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Kiro 平台 - BuilderID 登录方式
  * 
  * 使用 AWS Builder ID 的 Device Code Flow 登录
@@ -6,7 +6,7 @@
 
 import { logError, logInfo } from '@/lib/logger'
 import { useState, useRef, useEffect } from 'react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { Loader2, CheckCircle2, AlertCircle, Copy, Check, ExternalLink, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { invoke } from '@tauri-apps/api/core'

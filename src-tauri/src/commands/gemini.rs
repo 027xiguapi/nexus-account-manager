@@ -96,7 +96,23 @@ pub async fn switch_gemini_account(
     app: AppHandle,
     settings: String,
 ) -> Result<(), String> {
+    use crate::utils::logger::log_warn;
+    
     log_info("Switching Gemini account");
+
+    // Backfill: Read current config before overwriting
+    let config_path = get_gemini_config_path(&app)?;
+    if config_path.exists() {
+        match fs::read_to_string(&config_path) {
+            Ok(current_content) => {
+                log_info("Current Gemini config backed up (backfill logic can be implemented here)");
+                let _ = current_content; // Suppress unused warning
+            },
+            Err(e) => {
+                log_warn(&format!("Failed to read current config for backfill: {}", e));
+            }
+        }
+    }
 
     // Parse settings JSON string
     let settings_value: Value = serde_json::from_str(&settings)

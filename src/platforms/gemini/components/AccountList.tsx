@@ -1,4 +1,4 @@
-import { logError } from '@/lib/logger'
+﻿import { logError } from '@/lib/logger'
 import { useState, useMemo, useDeferredValue } from 'react'
 import { AddAccountDialog } from './AddAccountDialog'
 import { EditAccountDialog } from './EditAccountDialog'
@@ -6,11 +6,12 @@ import { ExportDialog } from '@/components/dialogs/ExportDialog'
 import { GeminiAccountCard } from './GeminiAccountCard'
 import { AccountTable } from '@/components/accounts/AccountTable'
 import { AccountSearch } from '@/components/accounts/AccountSearch'
-import { Card, CardContent } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { ProviderSelector } from './ProviderSelector'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { usePlatformStore } from '@/stores/usePlatformStore'
 import { useTranslation } from 'react-i18next'
-import { Download, LayoutGrid, List, Search } from 'lucide-react'
+import { Download, LayoutGrid, List, Search, Settings2 } from 'lucide-react'
 import { invoke } from '@tauri-apps/api/core'
 import { toast } from 'sonner'
 import type { Account, GeminiAccount } from '@/types/account'
@@ -20,6 +21,7 @@ type ViewMode = 'grid' | 'list'
 export function GeminiAccountList() {
   const { t } = useTranslation()
   const accounts = usePlatformStore((state) => state.accounts)
+  const updateAccount = usePlatformStore((state) => state.updateAccount)
   const [exportOpen, setExportOpen] = useState(false)
   const [isSwitching, setIsSwitching] = useState(false)
   const [editAccount, setEditAccount] = useState<GeminiAccount | null>(null)
@@ -49,18 +51,36 @@ export function GeminiAccountList() {
   const setSwitchAccount = async (account: Account) => {
     if (account.platform !== 'gemini') return
     
+    const geminiAccount = account as GeminiAccount
+    
     // 防止重复切换
     if (isSwitching) return
     
     setIsSwitching(true)
     
     try {
-      // 调用 Rust 后端切换账户（会自动更新 active 状态和写入配置文件）
-      await invoke('switch_gemini_account', { id: account.id })
+      // 1. 调用 Rust 后端切换账户配置（包含回填逻辑）
+      const config = geminiAccount.config
+
+      if (!config) {
+        toast.error(t('gemini.errors.noConfig', 'Configuration not found in account'))
+        return
+      }
       
-      // 重新加载账户列表以获取最新状态
-      const updatedAccounts = await invoke<Account[]>('get_accounts')
-      usePlatformStore.setState({ accounts: updatedAccounts })
+      await invoke('switch_gemini_account', { settings: JSON.stringify(config) })
+      
+      // 2. 将其他账户设置为非激活状态
+      const updatePromises = geminiAccounts
+        .filter(acc => acc.id !== account.id && acc.isActive)
+        .map(acc => updateAccount(acc.id, { isActive: false }))
+      
+      await Promise.all(updatePromises)
+      
+      // 3. 更新当前账户为激活状态
+      await updateAccount(account.id, { 
+        isActive: true,
+        lastUsedAt: Date.now()
+      })
       
       toast.success(t('gemini.switchSuccess', 'Gemini account switched successfully'))
     } catch (error: any) {

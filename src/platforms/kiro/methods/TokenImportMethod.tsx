@@ -1,13 +1,13 @@
-/**
+﻿/**
  * Kiro 平台 - Token 导入方式
  * 
  * 支持 SSO Token 和 OIDC 凭证批量导入
  */
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Label } from '@/components/ui/Label'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { invoke } from '@tauri-apps/api/core'

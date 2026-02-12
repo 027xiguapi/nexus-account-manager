@@ -1,5 +1,5 @@
-import { AccountDetailsDialog, DetailRow, DetailGrid } from '@/components/accounts/AccountDetailsDialogBase'
-import { Badge } from '@/components/ui/Badge'
+﻿import { AccountDetailsDialog, DetailRow, DetailGrid } from '@/components/accounts/AccountDetailsDialogBase'
+import { Badge } from '@/components/ui/badge'
 import { useTranslation } from 'react-i18next'
 import type { CodexAccount } from '@/types/account'
 import { Mail, User, Clock } from 'lucide-react'

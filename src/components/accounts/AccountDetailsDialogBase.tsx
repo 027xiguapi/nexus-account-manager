@@ -3,8 +3,8 @@
  * 提供统一的对话框结构，支持平台自定义内容渲染
  */
 import { ReactNode } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
-import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { Copy, Check } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'

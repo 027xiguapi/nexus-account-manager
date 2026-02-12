@@ -1,6 +1,6 @@
 import { logError } from '@/lib/logger'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { useTheme } from '@/hooks/useTheme'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
