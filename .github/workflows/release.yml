@@ -39,51 +39,51 @@ jobs:
               name: `Nexus Account Manager v${process.env.PACKAGE_VERSION}`,
               body: `## 📦 下载说明 / Download Guide
 
-### Windows
-- **Windows 10/11 (64-bit)**: 下载 \`.msi\` 或 \`.exe\` 文件
-  - \`Nexus-Account-Manager_${process.env.PACKAGE_VERSION}_x64_en-US.msi\` - MSI 安装包（推荐）
-  - \`Nexus-Account-Manager_${process.env.PACKAGE_VERSION}_x64-setup.exe\` - EXE 安装包
+            ### Windows
+            - **Windows 10/11 (64-bit)**: 下载 \`.msi\` 或 \`.exe\` 文件
+              - \`Nexus-Account-Manager_${process.env.PACKAGE_VERSION}_x64_en-US.msi\` - MSI 安装包（推荐）
+              - \`Nexus-Account-Manager_${process.env.PACKAGE_VERSION}_x64-setup.exe\` - EXE 安装包
 
-### macOS
-- **Apple Silicon (M1/M2/M3)**: 下载 \`aarch64\` 版本
-  - \`Nexus-Account-Manager_${process.env.PACKAGE_VERSION}_aarch64.dmg\`
-- **Intel 芯片**: 下载 \`x64\` 版本
-  - \`Nexus-Account-Manager_${process.env.PACKAGE_VERSION}_x64.dmg\`
+            ### macOS
+            - **Apple Silicon (M1/M2/M3)**: 下载 \`aarch64\` 版本
+              - \`Nexus-Account-Manager_${process.env.PACKAGE_VERSION}_aarch64.dmg\`
+            - **Intel 芯片**: 下载 \`x64\` 版本
+              - \`Nexus-Account-Manager_${process.env.PACKAGE_VERSION}_x64.dmg\`
 
-### Linux
-- **Debian/Ubuntu**: 下载 \`.deb\` 文件
-  - \`nexus-account-manager_${process.env.PACKAGE_VERSION}_amd64.deb\`
-- **其他发行版**: 下载 \`.AppImage\` 文件
-  - \`nexus-account-manager_${process.env.PACKAGE_VERSION}_amd64.AppImage\`
+            ### Linux
+            - **Debian/Ubuntu**: 下载 \`.deb\` 文件
+              - \`nexus-account-manager_${process.env.PACKAGE_VERSION}_amd64.deb\`
+            - **其他发行版**: 下载 \`.AppImage\` 文件
+              - \`nexus-account-manager_${process.env.PACKAGE_VERSION}_amd64.AppImage\`
 
----
+            ---
 
-## 🔍 如何确定你的系统架构？
+            ## 🔍 如何确定你的系统架构？
 
-### macOS
-打开终端运行：
-\`\`\`bash
-uname -m
-\`\`\`
-- 输出 \`arm64\` → 下载 aarch64 版本
-- 输出 \`x86_64\` → 下载 x64 版本
+            ### macOS
+            打开终端运行：
+            \`\`\`bash
+            uname -m
+            \`\`\`
+            - 输出 \`arm64\` → 下载 aarch64 版本
+            - 输出 \`x86_64\` → 下载 x64 版本
 
-### Windows
-- 设置 → 系统 → 关于 → 系统类型
-- 显示 "基于 x64 的处理器" → 下载 x64 版本
+            ### Windows
+            - 设置 → 系统 → 关于 → 系统类型
+            - 显示 "基于 x64 的处理器" → 下载 x64 版本
 
-### Linux
-终端运行：
-\`\`\`bash
-uname -m
-\`\`\`
-- 输出 \`x86_64\` → 下载 amd64 版本
+            ### Linux
+            终端运行：
+            \`\`\`bash
+            uname -m
+            \`\`\`
+            - 输出 \`x86_64\` → 下载 amd64 版本
 
----
+            ---
 
-## 📝 更新日志
+            ## 📝 更新日志
 
-查看完整更新日志请访问 [CHANGELOG.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CHANGELOG.md)`,
+            查看完整更新日志请访问 [CHANGELOG.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CHANGELOG.md)`,
               draft: true,
               prerelease: false
             })
