@@ -1,5 +1,5 @@
 import { AccountDetailsDialog, DetailRow, DetailGrid } from '@/components/accounts/AccountDetailsDialogBase'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/Badge'
 import { QuotaItem } from '@/components/accounts/QuotaItem'
 import { cn, getSubscriptionDisplayName, getSubscriptionStyle } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'

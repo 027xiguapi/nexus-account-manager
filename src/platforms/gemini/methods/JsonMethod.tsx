@@ -6,9 +6,9 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/Button'
+import { Label } from '@/components/ui/Label'
+import { Input } from '@/components/ui/Input'
 import { Loader2, CheckCircle2, AlertCircle, Upload } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'

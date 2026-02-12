@@ -5,9 +5,9 @@
  */
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/Button'
+import { Label } from '@/components/ui/Label'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { invoke } from '@tauri-apps/api/core'

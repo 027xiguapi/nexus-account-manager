@@ -1,7 +1,7 @@
 import { logError } from '@/lib/logger'
 import { memo, useState } from 'react'
 import { AccountCard } from '@/components/accounts/AccountCardBase'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/Badge'
 import { QuotaItem } from '@/components/accounts/QuotaItem'
 import { AntigravityAccountDetailsDialog } from './AntigravityAccountDetailsDialog'
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog'
