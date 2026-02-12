@@ -3,7 +3,7 @@
  * 提供统一的布局结构和交互逻辑，支持平台自定义内容渲染
  */
 import { memo, useState, ReactNode } from 'react'
-import { Card, CardContent } from '@/components/ui/Card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { toast } from '@/lib/toast'

@@ -1,6 +1,6 @@
 // import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { AntigravityAccount } from '@/types/account'
-import { Progress } from '@/components/ui/Progress'
+import { Progress } from '@/components/ui/progress'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
