@@ -230,7 +230,7 @@ src/platforms/[platform-name]/
 ```typescript
 import { memo, useState } from 'react'
 import { AccountCard } from '@/components/accounts/AccountCardBase'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/Badge'
 import { Account } from '@/types/account'
 
 interface KiroAccountCardProps {
@@ -371,7 +371,7 @@ import {
   DetailGrid 
 } from '@/components/accounts/AccountDetailsDialogBase'
 import { User, Award, Key, Globe } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/Badge'
 import { Account } from '@/types/account'
 
 interface KiroAccountDetailsDialogProps {

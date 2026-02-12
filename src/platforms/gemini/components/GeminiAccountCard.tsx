@@ -1,6 +1,6 @@
 import { memo, useState } from 'react'
 import { AccountCard } from '@/components/accounts/AccountCardBase'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/Badge'
 import { GeminiAccountDetailsDialog } from './GeminiAccountDetailsDialog'
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog'
 import { toast } from '@/lib/toast'
