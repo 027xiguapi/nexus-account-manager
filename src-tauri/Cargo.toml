@@ -1,8 +1,8 @@
 [package]
 name = "nexus-account-manager"
-version = "1.0.0"
+version = "1.0.1"
 description = "A unified multi-platform AI account management tool"
-authors = ["adnaan"]
+authors = ["adnaan", "027xigupi"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -44,3 +44,4 @@ toml = "1.0.1"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.55.0"
+
